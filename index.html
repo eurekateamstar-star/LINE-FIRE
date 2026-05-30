@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>火場戰術指揮系統 - 十字橫向版</title>
+    <title>火場戰術指揮系統 - 手機十字極限版</title>
     <style>
         :root {
             --frame-gray: #3a3f42;
@@ -11,8 +11,7 @@
             --neon-blue: #3399ff;
             --neon-red: #ff4d4d;
             --neon-gold: #ffcc00;
-            /* 調整為截圖中的科技青綠螢光色 */
-            --neon-green: #00ffaa; 
+            --neon-green: #00ffaa; /* 科技青綠螢光色 */
             --safe-green: #28a745;
         }
 
@@ -28,62 +27,56 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- 頂部列：左中右完美對齊 --- */
+        /* --- 頂部列：極度壓縮 (高度僅 50px) --- */
         .compact-header {
             display: flex; justify-content: space-between; align-items: center;
             background: #111; border-bottom: 2px solid #333;
-            padding: 5px 15px; height: 65px; flex-shrink: 0;
+            padding: 2px 10px; height: 50px; flex-shrink: 0;
         }
 
-        /* 左側：總人數 (寬度佔 25%) */
+        /* 左側：總人數 */
         .header-left { flex: 1; display: flex; flex-direction: column; align-items: flex-start; }
-        .stat-label { font-size: 11px; color: #888; font-weight: bold; letter-spacing: 1px;}
-        .stat-val { font-size: 24px; color: var(--neon-gold); font-family: Impact, sans-serif; line-height: 1; margin-top: 2px; }
+        .stat-label { font-size: 9px; color: #888; font-weight: bold; letter-spacing: 1px;}
+        .stat-val { font-size: 20px; color: var(--neon-gold); font-family: Impact, sans-serif; line-height: 1; margin-top: 1px; }
 
-        /* 中間：案件資訊 (寬度佔 50%，保證絕對置中) */
+        /* 中間：案件資訊 */
         .header-center { flex: 2; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden;}
-        #task-type { color: var(--neon-red); font-size: 18px; font-weight: 900; margin: 0; letter-spacing: 2px; white-space: nowrap; }
-        #task-address { color: var(--neon-blue); font-size: 12px; margin-top: 4px; white-space: nowrap; font-weight: bold;}
+        #task-type { color: var(--neon-red); font-size: 15px; font-weight: 900; margin: 0; letter-spacing: 1px; white-space: nowrap; }
+        #task-address { color: var(--neon-blue); font-size: 10px; margin-top: 2px; white-space: nowrap; font-weight: bold;}
 
-        /* 右側：日期、時間、按鈕 (寬度佔 25%) */
+        /* 右側：日期、時間 */
         .header-right { flex: 1; display: flex; flex-direction: column; align-items: flex-end; }
-        #live-date { color: #88ccff; font-size: 10px; font-family: monospace; font-weight: bold; margin-bottom: 2px;}
-        /* 右上角時鐘套用青綠螢光色 */
-        #live-clock { color: var(--neon-green); font-size: 16px; font-family: monospace; font-weight: bold; line-height: 1; }
-        #history-btn { 
-            background: #333; border: 1px solid #555; color: #fff; 
-            font-size: 10px; border-radius: 4px; padding: 2px 6px; 
-            margin-top: 4px; font-weight: bold; cursor: pointer;
-        }
+        #live-date { color: #88ccff; font-size: 9px; font-family: monospace; font-weight: bold; margin-bottom: 2px;}
+        #live-clock { color: var(--neon-green); font-size: 14px; font-family: monospace; font-weight: bold; line-height: 1; }
 
-        /* --- 十字網格 --- */
+        /* --- 十字網格：調整比例讓左右稍微寬一點 --- */
         .tactical-grid { 
-            display: grid; flex-grow: 1; padding: 5px; gap: 5px;
-            /* 將中間(core)設為 1.4 比例 */
-            grid-template-columns: 1fr 1.4fr 1fr; 
-            grid-template-rows: 1fr 1.4fr 1fr; 
+            display: grid; flex-grow: 1; padding: 4px; gap: 4px;
+            /* 1.15fr 讓左右兩邊比原本寬一點點，中間維持最大 */
+            grid-template-columns: 1.15fr 1.3fr 1.15fr; 
+            grid-template-rows: 1fr 1.3fr 1fr; 
             grid-template-areas: 
                 ". s3 ." 
                 "s2 core s4" 
                 ". s1 ."; 
-            height: calc(100vh - 65px);
+            height: calc(100vh - 50px);
         }
 
         /* 區域外框 */
         .heavy-sector { 
-            background: var(--inner-bg); border: 2px solid var(--frame-gray);
+            background: var(--inner-bg); border: 1px solid var(--frame-gray);
             border-radius: 4px; display: flex; flex-direction: column; overflow: hidden;
         }
 
         /* 縮寫標題列 */
         .sector-head { 
-            background: #2a2d31; padding: 4px 8px; font-size: 12px; font-weight: bold;
+            background: #2a2d31; padding: 2px 5px; font-size: 10px; font-weight: bold;
             border-bottom: 1px solid #000; display: flex; justify-content: space-between;
             align-items: center; color: #ccc;
         }
         .sector-count { 
             background: #000; color: var(--neon-gold); 
-            padding: 1px 6px; border-radius: 8px; font-size: 12px; border: 1px solid #444;
+            padding: 1px 5px; border-radius: 6px; font-size: 11px; border: 1px solid #444;
         }
 
         /* 內部入室區 */
@@ -96,26 +89,43 @@
         #zone-4 { grid-area: s4; border-left: 2px solid var(--neon-blue); } 
 
         /* 隊伍列表 (獨立滾動) */
-        .unit-list { flex-grow: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 4px; }
+        .unit-list { flex-grow: 1; overflow-y: auto; padding: 3px; display: flex; flex-direction: column; gap: 3px; }
 
-        /* --- 緊湊型卡片 --- */
+        /* --- 緊湊型卡片：極限防斷行設計 --- */
         .unit-plate { 
             background: #1a1c1e; border: 1px solid #333; 
-            border-left: 4px solid var(--safe-green);
-            padding: 5px 8px; border-radius: 3px;
+            border-left: 3px solid var(--safe-green);
+            padding: 3px 4px; border-radius: 3px;
         }
         #zone-center .unit-plate { border-left-color: var(--neon-red); }
 
-        .plate-row { display: flex; justify-content: space-between; align-items: baseline; }
+        .plate-row { display: flex; justify-content: space-between; align-items: center; }
         
-        .unit-name { font-weight: bold; color: var(--neon-gold); font-size: 13px; }
-        .unit-pax { color: #fff; font-size: 11px; background: #000; padding: 1px 4px; border-radius: 2px; }
+        /* 強制單行，超出變點點點 */
+        .unit-name { 
+            font-weight: bold; color: var(--neon-gold); font-size: 11px; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            flex-grow: 1; margin-right: 4px;
+        }
+        /* 人數區塊縮小 */
+        .unit-pax { color: #fff; font-size: 10px; background: #000; padding: 1px 3px; border-radius: 2px; white-space: nowrap; flex-shrink: 0;}
         
-        .unit-task { color: #ccc; font-size: 11px; font-weight: bold; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;}
+        .unit-task { 
+            color: #ccc; font-size: 10px; font-weight: bold; margin-top: 2px; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;
+        }
         
-        /* 卡片右下角時間套用青綠螢光色，並自動加上「回報」 */
-        .unit-time { color: var(--neon-green); font-family: monospace; font-size: 10px; font-weight: bold;}
-        .unit-time::after { content: " 回報"; font-family: '微軟正黑體', sans-serif; font-size: 9px; }
+        /* 移除"回報"二字，保留螢光色 */
+        .unit-time { color: var(--neon-green); font-family: monospace; font-size: 10px; font-weight: bold; margin-top: 2px; white-space: nowrap;}
+
+        /* --- 右下角浮動歷史按鈕 --- */
+        #floating-history-btn {
+            position: fixed; bottom: 10px; right: 10px; z-index: 500;
+            background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px);
+            border: 1px solid #666; color: #fff; 
+            padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer;
+        }
 
         /* 歷史紀錄彈出視窗 */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
@@ -130,25 +140,21 @@
 </head>
 <body>
 
-    <!-- 頂部列 -->
+    <!-- 頂部列 (極致壓縮版) -->
     <div class="compact-header">
-        <!-- 1. 左側：總人數 -->
         <div class="header-left">
-            <span class="stat-label">現場總人數</span>
+            <span class="stat-label">現場人數</span>
             <div class="stat-val" id="grand-total">0</div>
         </div>
         
-        <!-- 2. 中間：案件資訊 -->
         <div class="header-center">
             <h1 id="task-type">系統待命中</h1>
             <div id="task-address">等待派遣指令...</div>
         </div>
 
-        <!-- 3. 右側：日期、時間、歷史按鈕 -->
         <div class="header-right">
             <span id="live-date">YYYY-MM-DD</span>
             <span id="live-clock">00:00:00</span>
-            <button id="history-btn" onclick="document.getElementById('history-modal').style.display='block'">歷史紀錄</button>
         </div>
     </div>
 
@@ -178,6 +184,9 @@
             <div class="unit-list"></div>
         </div>
     </div>
+
+    <!-- 右下角浮動按鈕 -->
+    <button id="floating-history-btn" onclick="document.getElementById('history-modal').style.display='block'">歷史紀錄</button>
 
     <!-- 歷史紀錄彈出視窗 -->
     <div id="history-modal" class="modal">
@@ -248,7 +257,7 @@
                 else if (side.includes("3")) target = 'zone-3';
                 else if (side.includes("4")) target = 'zone-4';
 
-                // 緊湊卡片 (拔掉多餘中文字，時間套用新樣式)
+                // 極度壓縮防斷行卡片
                 const html = `
                     <div class="unit-plate">
                         <div class="plate-row">
