@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>即時救災人員配置圖</title>
+    <style>
+        /* 暗黑指揮中心風格 */
+        body { font-family: '微軟正黑體', sans-serif; background-color: #121212; color: white; margin: 0; padding: 20px; }
+        
+        /* 標題與最後更新時間區塊 */
+        .header-container { text-align: center; margin-bottom: 30px; }
+        h1 { color: #ff4d4d; letter-spacing: 2px; margin-bottom: 5px; }
+        .last-update { font-size: 1.1em; color: #00a8ff; font-weight: bold; background-color: rgba(0, 168, 255, 0.1); padding: 5px 15px; border-radius: 20px; display: inline-block;}
+        
+        /* 戰術圖資排版 */
+        .battleground {
+            display: grid;
+            grid-template-areas: 
+                ". side3 ."
+                "side4 center side2"
+                ". side1 .";
+            gap: 15px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .zone { background-color: #1e1e1e; border: 2px solid #333; border-radius: 8px; padding: 15px; min-height: 120px; }
+        .zone h3 { margin-top: 0; text-align: center; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        
+        /* 💡 升級：讓中間的起火建築物也變成一個可以放隊伍的區域 (頂樓) */
+        #zone-center { grid-area: center; background-color: #3a0d0d; border: 2px dashed #ff4d4d; border-radius: 8px; padding: 15px; min-height: 120px; }
+        #zone-center h3 { margin-top: 0; text-align: center; color: #ff4d4d; border-bottom: 1px dashed #ff4d4d; padding-bottom: 5px; font-weight: bold; font-size: 1.2em;}
+        
+        #zone-1 { grid-area: side1; border-top: 4px solid #00a8ff; } 
+        #zone-2 { grid-area: side2; border-left: 4px solid #00a8ff; } 
+        #zone-3 { grid-area: side3; border-bottom: 4px solid #00a8ff; } 
+        #zone-4 { grid-area: side4; border-right: 4px solid #00a8ff; } 
+
+        /* 隊伍卡片樣式 */
+        .team-card { background-color: #2c2c2c; border-left: 4px solid #4cd137; padding: 10px; margin-bottom: 8px; border-radius: 4px; animation: flash 1s ease-out; }
+        /* 💡 如果是頂樓的部隊，卡片邊框改成紅色警示 */
+        #zone-center .team-card { border-left: 4px solid #ff4d4d; }
+        
+        .team-title { font-weight: bold; color: #f1c40f; font-size: 1.1em; }
+        .team-detail { color: #ddd; margin-top: 4px; font-size: 0.95em; }
+        .team-time { color: #888; font-size: 0.8em; text-align: right; margin-top: 6px; border-top: 1px dashed #444; padding-top: 4px; }
+
+        @keyframes flash { 0% { background-color: #4cd137; } 100% { background-color: #2c2c2c; } }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>🔥 救災人員即時圖資配置</h1>
+        <div id="global-time" class="last-update">系統連線中...</div>
+    </div>
+
+    <div class="battleground">
+        <div id="zone-3" class="zone"><h3>3面 (後方)</h3><div class="teams"></div></div>
+        <div id="zone-4" class="zone"><h3>4面 (左方)</h3><div class="teams"></div></div>
+        <!-- 💡 這裡改成頂樓區塊 -->
+        <div id="zone-center" class="zone"><h3>🔥 起火建築物 (頂樓/內部)</h3><div class="teams"></div></div>
+        <div id="zone-2" class="zone"><h3>2面 (右方)</h3><div class="teams"></div></div>
+        <div id="zone-1" class="zone"><h3>1面 (前方)</h3><div class="teams"></div></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔴 務必把這裡換成你 Clawone 專案的金鑰！
+        const firebaseConfig = {
+            apiKey: "你的_API_KEY",
+            authDomain: "clawone-6445c.firebaseapp.com",
+            projectId: "clawone-6445c",
+            storageBucket: "clawone-6445c.appspot.com",
+            messagingSenderId: "你的_SENDER_ID",
+            appId: "你的_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 即時監聽 fire_deployments
+        onSnapshot(collection(db, "fire_deployments"), (snapshot) => {
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-TW', { hour12: false });
+            document.getElementById('global-time').innerText = `🔄 最後更新：${timeString}`;
+
+            // 清空所有區域 (包含新的 zone-center)
+            document.querySelector('#zone-1 .teams').innerHTML = "";
+            document.querySelector('#zone-2 .teams').innerHTML = "";
+            document.querySelector('#zone-3 .teams').innerHTML = "";
+            document.querySelector('#zone-4 .teams').innerHTML = "";
+            document.querySelector('#zone-center .teams').innerHTML = "";
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                let reportTime = "更新中...";
+                if (data.updateTime) {
+                    reportTime = data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour12: false });
+                }
+
+                const cardHtml = `
+                    <div class="team-card">
+                        <div class="team-title">${data.team} (${data.people})</div>
+                        <div class="team-detail">任務: ${data.task} | 位置: ${data.address}</div>
+                        <div class="team-time">⏱ 回報時間: ${reportTime}</div>
+                    </div>
+                `;
+
+                // 💡 判斷邏輯加入「頂樓」或「內部」
+                if (data.side.includes("1")) {
+                    document.querySelector('#zone-1 .teams').innerHTML += cardHtml;
+                } else if (data.side.includes("2")) {
+                    document.querySelector('#zone-2 .teams').innerHTML += cardHtml;
+                } else if (data.side.includes("3")) {
+                    document.querySelector('#zone-3 .teams').innerHTML += cardHtml;
+                } else if (data.side.includes("4")) {
+                    document.querySelector('#zone-4 .teams').innerHTML += cardHtml;
+                } else if (data.side.includes("頂樓") || data.side.includes("內部")) {
+                    // 如果回報是頂樓，放進中間的紅框框裡！
+                    document.querySelector('#zone-center .teams').innerHTML += cardHtml;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
