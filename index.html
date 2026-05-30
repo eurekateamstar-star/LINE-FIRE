@@ -18,7 +18,6 @@
 
         * { box-sizing: border-box; }
         body { 
-            /* 優先使用微軟正黑體以確保中文顯示銳利 */
             font-family: 'Noto Sans TC', '微軟正黑體', 'Segoe UI', sans-serif; 
             background-color: #0b0d0e; 
             background-image: 
@@ -32,13 +31,14 @@
             display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        /* --- 頂部指揮中樞狀態列 --- */
+        /* --- 頂部指揮中樞狀態列 (電腦版) --- */
         .dashboard-header { 
-            display: flex; height: 80px; flex-shrink: 0;
+            display: flex; height: 85px; flex-shrink: 0;
             background: linear-gradient(to bottom, #333, #111);
             border-bottom: 3px solid #000;
-            padding: 10px 15px; gap: 15px;
+            padding: 10px 20px; gap: 15px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+            justify-content: center;
         }
 
         .header-panel { 
@@ -49,30 +49,31 @@
         }
 
         /* 總人數顯示區 */
+        .stat-panel { min-width: 120px; align-items: center; }
         .stat-label { font-size: 12px; color: #999; font-weight: bold; letter-spacing: 1px; }
         .stat-val { font-size: 26px; color: var(--neon-gold); font-family: Impact, sans-serif; letter-spacing: 2px; }
         .stat-val::after { content: " 人"; font-size: 12px; color: #aaa; letter-spacing: 0; }
 
         /* 案件資訊顯示區 */
-        .mission-display { flex-grow: 1; border-color: #666; background: #080808; text-align: center; }
+        .mission-display { flex-grow: 1; max-width: 800px; border-color: #666; background: #080808; text-align: center; }
         #task-type { color: var(--neon-red); margin: 0; font-size: 1.4rem; font-weight: 900; letter-spacing: 3px; }
         #task-address { color: var(--neon-blue); font-size: 13px; margin-top: 4px; font-weight: bold; }
 
-        /* 時間與紀錄區 */
-        .clock-panel { min-width: 140px; text-align: center; justify-content: space-between; padding: 5px 15px; }
-        #live-clock { color: #00ff00; font-size: 20px; font-family: monospace; font-weight: bold; }
+        /* 時間與紀錄區 (調整位置往左靠一點) */
+        .clock-panel { min-width: 160px; text-align: center; justify-content: space-between; padding: 6px 15px; margin-right: 2%; }
+        #live-date { color: #88ccff; font-size: 11px; font-family: monospace; font-weight: bold; letter-spacing: 1px; }
+        #live-clock { color: #00ff00; font-size: 22px; font-family: monospace; font-weight: bold; line-height: 1; margin-bottom: 3px; }
         #history-btn { 
             background: linear-gradient(to bottom, #555, #333); 
             border: 1px solid #777; color: #fff; font-size: 11px; 
-            cursor: pointer; border-radius: 4px; padding: 4px; 
-            font-weight: bold; transition: 0.2s;
+            cursor: pointer; border-radius: 4px; padding: 3px; 
+            font-weight: bold; transition: 0.2s; width: 100%;
         }
         #history-btn:hover { background: #666; }
 
-        /* --- 戰術網格佈局 (火場四面) --- */
+        /* --- 戰術網格佈局 (電腦版 十字佈局) --- */
         .tactical-grid { 
             display: grid; flex-grow: 1; padding: 12px; gap: 12px;
-            /* 將1面放底部(正面)，3面放頂部(後方)，符合指揮官站正面的直覺 */
             grid-template-areas: ". s3 ." "s2 core s4" ". s1 ."; 
             grid-template-columns: 1fr 1.6fr 1fr; 
             grid-template-rows: 1fr 1.6fr 1fr; 
@@ -80,10 +81,8 @@
 
         /* 區域外框 */
         .heavy-sector { 
-            background: var(--inner-bg);
-            border: 3px solid var(--frame-gray);
-            border-radius: 6px;
-            display: flex; flex-direction: column; overflow: hidden;
+            background: var(--inner-bg); border: 3px solid var(--frame-gray);
+            border-radius: 6px; display: flex; flex-direction: column; overflow: hidden;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
@@ -95,8 +94,7 @@
         }
         .sector-count { 
             background: #000; color: var(--neon-gold); 
-            padding: 2px 8px; border-radius: 10px; font-size: 14px; 
-            border: 1px solid #444;
+            padding: 2px 8px; border-radius: 10px; font-size: 14px; border: 1px solid #444;
         }
         .sector-count::after { content: " 員"; font-size: 10px; color: #888; }
 
@@ -115,16 +113,13 @@
 
         /* --- 派遣單位管制卡 --- */
         .unit-plate { 
-            background: linear-gradient(135deg, #2c2f33, #1a1c1e);
-            border: 1px solid #555; 
-            border-left: 6px solid var(--safe-green);
-            padding: 8px 10px; border-radius: 4px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            animation: fadeIn 0.3s ease-out;
+            background: linear-gradient(135deg, #2c2f33, #1a1c1e); border: 1px solid #555; 
+            border-left: 6px solid var(--safe-green); padding: 8px 10px; border-radius: 4px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-out;
         }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        #zone-center .unit-plate { border-left-color: var(--neon-red); } /* 內部人員用紅色標記 */
+        #zone-center .unit-plate { border-left-color: var(--neon-red); }
 
         .plate-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #444; padding-bottom: 4px; }
         .unit-name { font-weight: 900; color: var(--neon-gold); font-size: 16px; letter-spacing: 1px; }
@@ -139,26 +134,63 @@
 
         /* --- 歷史紀錄彈出視窗 --- */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(3px); }
-        .modal-box { background: #1a1c1e; border: 2px solid #555; width: 80%; max-width: 600px; margin: 10% auto; border-radius: 6px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,1); }
+        .modal-box { background: #1a1c1e; border: 2px solid #555; width: 90%; max-width: 600px; margin: 10% auto; border-radius: 6px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,1); }
         .modal-head { padding: 15px; background: #000; color: var(--neon-gold); font-size: 16px; font-weight: bold; border-bottom: 1px solid #444; text-align: center; letter-spacing: 2px; }
         .log-item { padding: 10px; border-bottom: 1px solid #333; color: #ccc; font-size: 13px; display: flex; gap: 10px; }
         .log-tag { color: var(--neon-blue); font-weight: bold; }
-        
         .close-btn { background: #aa0000; color: #fff; border: none; padding: 12px; font-weight: bold; cursor: pointer; font-size: 14px; letter-spacing: 2px; transition: 0.2s; }
-        .close-btn:hover { background: #ff3333; }
-
+        
         /* 卷軸美化 */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #555; border-radius: 10px; }
+
+        /* =========================================
+           手機版專用設定 (Responsive Web Design)
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 1. 讓網頁可以上下滑動 */
+            body { height: auto; min-height: 100vh; overflow-y: auto; overflow-x: hidden; }
+            
+            /* 2. 頂部儀表板重排：案件標題置頂，人數跟時鐘並排在下 */
+            .dashboard-header { 
+                flex-wrap: wrap; height: auto; padding: 10px; gap: 10px; 
+            }
+            .mission-display { width: 100%; order: -1; padding: 10px; } /* 案件置頂 */
+            .stat-panel, .clock-panel { 
+                width: calc(50% - 5px); /* 人數和時鐘各佔一半 */
+                margin: 0; padding: 8px;
+            }
+            #task-type { font-size: 1.2rem; }
+            .clock-panel { padding-top: 4px; padding-bottom: 4px; }
+            #live-clock { font-size: 18px; }
+
+            /* 3. 戰術網格取消十字型，改為「單行垂直排列」 */
+            .tactical-grid { 
+                display: flex; flex-direction: column; height: auto; padding: 10px; gap: 15px; 
+            }
+
+            /* 4. 修改區域邊框與最小高度，確保在手機上好點擊好滑動 */
+            .heavy-sector { 
+                min-height: 150px; 
+                border-width: 2px;
+            }
+
+            /* 5. 定義手機版閱讀順序：最危險的內部優先，再來是正面 */
+            #zone-center { order: 1; border-top-width: 4px; }
+            #zone-1 { order: 2; }
+            #zone-2 { order: 3; }
+            #zone-3 { order: 4; }
+            #zone-4 { order: 5; }
+        }
     </style>
 </head>
 <body>
 
     <!-- 頂部指揮中樞 -->
     <div class="dashboard-header">
-        <div class="header-panel">
-            <span class="stat-label">現場投入總人數</span>
+        <div class="header-panel stat-panel">
+            <span class="stat-label">投入總人數</span>
             <span class="stat-val" id="grand-total">00</span>
         </div>
         <div class="header-panel mission-display">
@@ -166,12 +198,13 @@
             <div id="task-address">等待派遣中心傳輸指令...</div>
         </div>
         <div class="header-panel clock-panel">
+            <span id="live-date">YYYY-MM-DD (W)</span>
             <span id="live-clock">00:00:00</span>
             <button id="history-btn" onclick="document.getElementById('history-modal').style.display='block'">查看歷史任務</button>
         </div>
     </div>
 
-    <!-- 戰術佈署網格 (以1面為正面基準) -->
+    <!-- 戰術佈署網格 -->
     <div class="tactical-grid">
         <div id="zone-3" class="heavy-sector">
             <div class="sector-head"><span>第3面 (後方)</span><span class="sector-count" id="c-zone-3">0</span></div>
@@ -182,7 +215,7 @@
             <div class="unit-list"></div>
         </div>
         
-        <!-- 核心重地：內部入室人員 -->
+        <!-- 核心重地 -->
         <div id="zone-center" class="heavy-sector">
             <div class="sector-head"><span>內部入室 / 頂樓作業</span><span class="sector-count" id="c-zone-center">0</span></div>
             <div class="unit-list"></div>
@@ -227,9 +260,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- 中原標準時間時鐘 ---
+        // --- 中原標準時間與日期時鐘 ---
         setInterval(() => {
-            document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const weekStr = `(${weekdays[now.getDay()]})`;
+
+            document.getElementById('live-date').innerText = `${y}-${m}-${d} ${weekStr}`;
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('zh-TW', { hour12: false });
         }, 1000);
 
         // --- 監聽當前任務資訊 ---
@@ -248,7 +289,6 @@
             const counts = { 'zone-1':0, 'zone-2':0, 'zone-3':0, 'zone-4':0, 'zone-center':0 };
             let total = 0;
             
-            // 清空舊視圖
             document.querySelectorAll('.unit-list').forEach(el => el.innerHTML = "");
 
             snap.forEach(d => {
@@ -258,14 +298,12 @@
                 const side = data.side || "";
                 const time = data.updateTime ? data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--";
 
-                // 判斷佈署區域 (邏輯維持原樣以相容您的資料庫)
                 let target = 'zone-1';
                 if (side.includes("內部") || side.includes("頂樓")) target = 'zone-center';
                 else if (side.includes("2")) target = 'zone-2';
                 else if (side.includes("3")) target = 'zone-3';
                 else if (side.includes("4")) target = 'zone-4';
 
-                // 生成部隊管制卡片
                 const html = `
                     <div class="unit-plate">
                         <div class="plate-top">
@@ -283,7 +321,6 @@
                 total += pNum;
             });
             
-            // 更新各區人數與總人數
             document.getElementById('grand-total').innerText = total.toString().padStart(2, '0');
             for(let k in counts) document.getElementById(`c-${k}`).innerText = counts[k];
         });
@@ -299,7 +336,6 @@
                         <span>${d.data().type} - ${d.data().address}</span>
                     </div>`;
             });
-            // 若無資料顯示提示
             if (snap.empty) {
                 container.innerHTML = "<div style='text-align:center; color:#666; padding: 20px;'>目前無歷史紀錄</div>";
             }
