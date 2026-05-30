@@ -2,128 +2,148 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>即時救災人員配置圖</title>
     <style>
-        /* 暗黑指揮中心風格 */
+        /* 極致壓縮空間的指揮中心風格 */
+        * { box-sizing: border-box; }
+        
         body { 
             font-family: '微軟正黑體', sans-serif; 
-            background-color: #121212; 
+            background-color: #0c0c0c; 
             color: white; 
             margin: 0; 
-            padding: 10px; 
+            padding: 5px; 
+            height: 100vh; /* 鎖定螢幕高度 */
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* 禁止整頁捲動 */
         }
         
-        .header-container { text-align: center; margin-bottom: 20px; }
-        h1 { color: #ff4d4d; letter-spacing: 2px; margin-bottom: 5px; font-size: 1.5rem; }
+        /* 標題列 */
+        .header-container { 
+            text-align: center; 
+            padding-bottom: 5px; 
+            flex-shrink: 0; 
+        }
+        h1 { 
+            color: #ff4d4d; 
+            margin: 0; 
+            font-size: 1.1rem; 
+            letter-spacing: 1px;
+        }
         .last-update { 
-            font-size: 0.9em; 
+            font-size: 0.7rem; 
             color: #00a8ff; 
-            font-weight: bold; 
             background-color: rgba(0, 168, 255, 0.1); 
-            padding: 5px 15px; 
-            border-radius: 20px; 
-            display: inline-block;
+            padding: 2px 8px; 
+            border-radius: 10px; 
         }
         
-        /* 戰術圖資排版 - 電腦版十字架 */
+        /* 戰術十字佈局核心 */
         .battleground {
             display: grid;
+            flex-grow: 1; /* 填滿剩餘空間 */
+            gap: 4px;
             grid-template-areas: 
                 ". side3 ."
                 "side4 center side2"
                 ". side1 .";
-            grid-template-columns: 1fr 1.8fr 1fr; /* 中間主建築稍微寬一點 */
-            gap: 15px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        /* 📱 手機版：區域改為垂直堆疊 */
-        @media (max-width: 768px) {
-            .battleground {
-                grid-template-areas: 
-                    "side3"
-                    "side4"
-                    "center"
-                    "side2"
-                    "side1";
-                grid-template-columns: 1fr;
-            }
+            grid-template-columns: 1fr 1.3fr 1fr; 
+            grid-template-rows: 1fr 1.3fr 1fr;
+            padding: 2px;
+            height: calc(100% - 40px);
         }
 
         .zone { 
-            background-color: #1e1e1e; 
-            border: 2px solid #333; 
-            border-radius: 8px; 
-            padding: 12px; 
-            min-height: 80px; 
-        }
-        .zone h3 { 
-            margin-top: 0; 
-            text-align: center; 
-            color: #aaa; 
-            border-bottom: 1px solid #444; 
-            padding-bottom: 8px; 
-            font-size: 0.9rem;
-        }
-        
-        #zone-center { grid-area: center; background-color: #3a0d0d; border: 2px dashed #ff4d4d; }
-        #zone-center h3 { color: #ff4d4d; border-bottom: 1px dashed #ff4d4d; font-weight: bold; }
-        
-        #zone-1 { grid-area: side1; border-top: 4px solid #00a8ff; } 
-        #zone-2 { grid-area: side2; border-left: 4px solid #00a8ff; } 
-        #zone-3 { grid-area: side3; border-bottom: 4px solid #00a8ff; } 
-        #zone-4 { grid-area: side4; border-right: 4px solid #00a8ff; } 
-
-        /* 💡 核心排版邏輯：自動判斷 1個全寬、2個左右、3個以上兩排 */
-        .teams {
-            display: grid;
-            /* 只要寬度超過 180px 就會並排，否則就單排 */
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        /* 隊伍卡片樣式 */
-        .team-card { 
-            background-color: #2c2c2c; 
-            border-left: 4px solid #4cd137; 
-            padding: 10px; 
+            background-color: #1a1a1a; 
+            border: 1px solid #333; 
             border-radius: 4px; 
-            animation: flash 1s ease-out;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-        }
-        
-        #zone-center .team-card { border-left: 4px solid #ff4d4d; }
-        
-        .team-title { font-weight: bold; color: #f1c40f; font-size: 0.95rem; margin-bottom: 5px; }
-        .team-detail { color: #ddd; font-size: 0.85rem; line-height: 1.4; }
-        .team-time { 
-            color: #777; 
-            font-size: 0.7rem; 
-            text-align: right; 
-            margin-top: 8px; 
-            border-top: 1px dashed #444; 
-            padding-top: 5px; 
+            overflow: hidden;
+            position: relative;
         }
 
-        @keyframes flash { 0% { background-color: #4cd137; } 100% { background-color: #2c2c2c; } }
+        .zone h3 { 
+            margin: 0; 
+            text-align: center; 
+            color: #888; 
+            background: #252525;
+            font-size: 0.7rem; 
+            padding: 2px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        /* 核心起火點樣式 */
+        #zone-center { grid-area: center; background-color: #2a0a0a; border: 1px dashed #ff4d4d; }
+        #zone-center h3 { color: #ff4d4d; background: #3d1111; font-weight: bold; }
+        
+        /* 方位邊框色帶 */
+        #zone-1 { grid-area: side1; border-top: 2px solid #00a8ff; } 
+        #zone-2 { grid-area: side2; border-left: 2px solid #00a8ff; } 
+        #zone-3 { grid-area: side3; border-bottom: 2px solid #00a8ff; } 
+        #zone-4 { grid-area: side4; border-right: 2px solid #00a8ff; } 
+
+        /* 隊伍容器：區域內捲動 */
+        .teams {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 3px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        /* 極簡隊伍卡片 */
+        .team-card { 
+            background-color: #262626; 
+            border-left: 3px solid #4cd137; 
+            padding: 4px; 
+            border-radius: 2px; 
+            animation: flash 0.8s ease-out;
+        }
+        
+        #zone-center .team-card { border-left: 3px solid #ff4d4d; }
+        
+        .team-title { font-weight: bold; color: #f1c40f; font-size: 0.75rem; line-height: 1.1; }
+        .team-detail { color: #ccc; font-size: 0.65rem; line-height: 1.2; margin-top: 1px; }
+        .team-time { 
+            color: #666; 
+            font-size: 0.55rem; 
+            text-align: right; 
+            margin-top: 2px; 
+            border-top: 1px dotted #444;
+        }
+
+        @keyframes flash { 0% { background-color: #4cd137; } 100% { background-color: #262626; } }
+
+        /* 電腦版適度放寬字體 */
+        @media (min-width: 768px) {
+            h1 { font-size: 1.5rem; }
+            .team-title { font-size: 0.9rem; }
+            .team-detail { font-size: 0.8rem; }
+            .zone h3 { font-size: 0.85rem; }
+            .battleground { gap: 10px; }
+        }
+
+        /* 隱藏捲軸樣式 (Chrome/Safari) */
+        .teams::-webkit-scrollbar { width: 2px; }
+        .teams::-webkit-scrollbar-thumb { background: #444; }
     </style>
 </head>
 <body>
 
     <div class="header-container">
-        <h1>🔥 救災人員即時配置</h1>
-        <div id="global-time" class="last-update">系統連線中...</div>
+        <h1>🔥 救災即時配置</h1>
+        <span id="global-time" class="last-update">系統載入中...</span>
     </div>
 
     <div class="battleground">
         <div id="zone-3" class="zone"><h3>3面 (後方)</h3><div class="teams"></div></div>
         <div id="zone-4" class="zone"><h3>4面 (左方)</h3><div class="teams"></div></div>
-        <div id="zone-center" class="zone"><h3>🔥 起火建物 (頂樓/內部)</h3><div class="teams"></div></div>
+        <div id="zone-center" class="zone"><h3>🔥 建物內部</h3><div class="teams"></div></div>
         <div id="zone-2" class="zone"><h3>2面 (右方)</h3><div class="teams"></div></div>
         <div id="zone-1" class="zone"><h3>1面 (前方)</h3><div class="teams"></div></div>
     </div>
@@ -132,7 +152,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ✅ 已填入您圖片中的 Firebase 金鑰
         const firebaseConfig = {
             apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A",
             authDomain: "clawone-6445c.firebaseapp.com",
@@ -148,7 +167,7 @@
 
         onSnapshot(collection(db, "fire_deployments"), (snapshot) => {
             const now = new Date();
-            document.getElementById('global-time').innerText = `🔄 更新時間：${now.toLocaleTimeString('zh-TW', { hour12: false })}`;
+            document.getElementById('global-time').innerText = `🔄 ${now.toLocaleTimeString('zh-TW', { hour12: false })}`;
 
             // 清空所有區域
             const zones = ['zone-1', 'zone-2', 'zone-3', 'zone-4', 'zone-center'];
@@ -156,30 +175,28 @@
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                let reportTime = data.updateTime ? data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour12: false }) : "--:--";
+                let reportTime = data.updateTime ? data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : "--:--";
 
-                // 💡 修正：${data.people} 後方不加「人」字，避免出現「5人人」
                 const cardHtml = `
                     <div class="team-card">
-                        <div>
-                            <div class="team-title">${data.team} (${data.people})</div>
-                            <div class="team-detail">任務: ${data.task}</div>
-                            <div class="team-detail">位置: ${data.address}</div>
-                        </div>
+                        <div class="team-title">${data.team} (${data.people})</div>
+                        <div class="team-detail">任: ${data.task}</div>
+                        <div class="team-detail">位: ${data.address}</div>
                         <div class="team-time">⏱ ${reportTime}</div>
                     </div>
                 `;
 
-                // 分類邏輯
-                if (data.side.includes("頂樓") || data.side.includes("內部")) {
+                // 精確分類邏輯
+                const side = data.side || "";
+                if (side.includes("頂樓") || side.includes("內部")) {
                     document.querySelector('#zone-center .teams').innerHTML += cardHtml;
-                } else if (data.side.includes("1")) {
+                } else if (side.includes("1")) {
                     document.querySelector('#zone-1 .teams').innerHTML += cardHtml;
-                } else if (data.side.includes("2")) {
+                } else if (side.includes("2")) {
                     document.querySelector('#zone-2 .teams').innerHTML += cardHtml;
-                } else if (data.side.includes("3")) {
+                } else if (side.includes("3")) {
                     document.querySelector('#zone-3 .teams').innerHTML += cardHtml;
-                } else if (data.side.includes("4")) {
+                } else if (side.includes("4")) {
                     document.querySelector('#zone-4 .teams').innerHTML += cardHtml;
                 }
             });
