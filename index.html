@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>救災人力配置-總量統計版</title>
+    <title>救災人力配置-方位修正版</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -18,7 +18,6 @@
             overflow: hidden; 
         }
         
-        /* 頂部標題與總人數 */
         .header-container { 
             text-align: center; 
             padding: 2px 0; 
@@ -42,14 +41,14 @@
         }
         .last-update { font-size: 0.7rem; color: #00a8ff; padding: 1px 5px; }
 
-        /* 戰術十字佈局 */
+        /* 戰術十字佈局 - 已交換左右方位 */
         .battleground {
             display: grid;
             flex-grow: 1;
             gap: 4px;
             grid-template-areas: 
                 ". side3 ."
-                "side4 center side2"
+                "side2 center side4"  /* 2面在左，4面在右 */
                 ". side1 .";
             grid-template-columns: 1fr 1.4fr 1fr; 
             grid-template-rows: 1fr 1.2fr 1fr;
@@ -65,7 +64,6 @@
             overflow: hidden;
         }
 
-        /* 方位標題列：包含人數統計 */
         .zone h3 { 
             margin: 0; 
             text-align: center; 
@@ -78,15 +76,16 @@
             justify-content: center;
             gap: 5px;
         }
-        .zone-count { color: #f1c40f; font-weight: bold; } /* 區域人數突出顯示 */
+        .zone-count { color: #f1c40f; font-weight: bold; } 
         
         #zone-center { grid-area: center; background-color: #1a0505; border: 1px dashed #ff4d4d; }
         #zone-center h3 { color: #ff4d4d; background: #2d0a0a; font-weight: bold; }
         
+        /* 視覺導引邊框：朝向火場中心 */
         #zone-1 { grid-area: side1; border-top: 2px solid #00a8ff; } 
-        #zone-2 { grid-area: side2; border-left: 2px solid #00a8ff; } 
+        #zone-2 { grid-area: side2; border-right: 2px solid #00a8ff; } /* 2面(左) */
         #zone-3 { grid-area: side3; border-bottom: 2px solid #00a8ff; } 
-        #zone-4 { grid-area: side4; border-right: 2px solid #00a8ff; } 
+        #zone-4 { grid-area: side4; border-left: 2px solid #00a8ff; }  /* 4面(右) */
 
         .teams {
             flex-grow: 1;
@@ -97,7 +96,6 @@
             gap: 4px;
         }
 
-        /* 隊伍卡片 */
         .team-card { 
             background-color: #222; 
             border-left: 3px solid #4cd137; 
@@ -153,9 +151,9 @@
 
     <div class="battleground">
         <div id="zone-3" class="zone"><h3>3面 (後方) <span class="zone-count" id="count-zone-3">0</span></h3><div class="teams"></div></div>
-        <div id="zone-4" class="zone"><h3>4面 (左方) <span class="zone-count" id="count-zone-4">0</span></h3><div class="teams"></div></div>
+        <div id="zone-2" class="zone"><h3>2面 (左方) <span class="zone-count" id="count-zone-2">0</span></h3><div class="teams"></div></div>
         <div id="zone-center" class="zone"><h3>🔥 內部 <span class="zone-count" id="count-zone-center">0</span></h3><div class="teams"></div></div>
-        <div id="zone-2" class="zone"><h3>2面 (右方) <span class="zone-count" id="count-zone-2">0</span></h3><div class="teams"></div></div>
+        <div id="zone-4" class="zone"><h3>4面 (右方) <span class="zone-count" id="count-zone-4">0</span></h3><div class="teams"></div></div>
         <div id="zone-1" class="zone"><h3>1面 (前方) <span class="zone-count" id="count-zone-1">0</span></h3><div class="teams"></div></div>
     </div>
 
@@ -180,11 +178,9 @@
             const now = new Date();
             document.getElementById('global-time').innerText = `🕒 ${now.toLocaleTimeString('zh-TW', { hour12: false })}`;
 
-            // 初始化區域人數統計
             const zoneTotals = { 'zone-1': 0, 'zone-2': 0, 'zone-3': 0, 'zone-4': 0, 'zone-center': 0 };
             let grandTotal = 0;
 
-            // 清空畫面
             const zones = ['zone-1', 'zone-2', 'zone-3', 'zone-4', 'zone-center'];
             zones.forEach(z => document.querySelector(`#${z} .teams`).innerHTML = "");
 
@@ -211,7 +207,6 @@
                     </div>
                 `;
 
-                // 方位判定邏輯
                 const side = data.side || "";
                 let targetZone = "";
                 if (side.includes("頂樓") || side.includes("內部")) {
@@ -233,7 +228,6 @@
                 }
             });
 
-            // 更新顯示的人數統計
             document.getElementById('global-total').innerText = `總計: ${grandTotal} 人`;
             for (const key in zoneTotals) {
                 document.getElementById(`count-${key}`).innerText = `${zoneTotals[key]}人`;
