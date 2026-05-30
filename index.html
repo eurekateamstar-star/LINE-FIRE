@@ -17,31 +17,36 @@
         /* 標題區域極限壓縮 */
         .header-container { 
             display: flex; justify-content: space-between; align-items: center;
-            padding: 2px 10px; border-bottom: 1px solid #333; 
-            height: 52px; flex-shrink: 0; background: #050505;
+            padding: 4px 10px; border-bottom: 1px solid #333; 
+            height: 65px; flex-shrink: 0; background: #050505;
         }
         .header-left { flex: 1; text-align: left; }
-        .header-center { flex: 2.2; text-align: center; }
-        .header-right { flex: 0.8; text-align: right; }
+        .header-center { flex: 1.8; text-align: center; }
+        .header-right { flex: 1.2; text-align: right; }
 
-        .stats-bar { font-size: 10px; color: #f1c40f; line-height: 1.1; }
-        #task-type { color: #ff4d4d; margin: 0; font-size: 1.05rem; font-weight: bold; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-        #task-address { color: #00a8ff; font-size: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .stats-bar { font-size: 11px; color: #f1c40f; line-height: 1.2; font-weight: bold; }
+        #task-type { color: #ff4d4d; margin: 0; font-size: 1.15rem; font-weight: bold; text-shadow: 0 0 5px rgba(255,0,0,0.5); }
+        #task-address { color: #00a8ff; font-size: 11px; font-weight: bold; }
+
+        /* 右側即時動態時鐘 */
+        .live-clock-box { display: flex; flex-direction: column; align-items: flex-end; }
+        .big-clock { font-size: 1.3rem; color: #2ecc71; font-family: 'Courier New', monospace; font-weight: bold; text-shadow: 0 0 8px rgba(46,204,113,0.4); }
+        .clock-label { font-size: 9px; color: #666; letter-spacing: 1px; }
 
         #history-btn { 
-            background: #1a1a1a; color: #00ffcc; border: 1px solid #00ffcc; 
-            padding: 3px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;
+            background: #111; color: #00ffcc; border: 1px solid #00ffcc; 
+            padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; margin-top: 3px;
         }
 
         /* 戰術地圖區 */
         .battleground { 
-            display: grid; flex-grow: 1; gap: 3px; padding: 3px;
+            display: grid; flex-grow: 1; gap: 4px; padding: 4px;
             grid-template-areas: ". side3 ." "side2 center side4" ". side1 ."; 
             grid-template-columns: 1fr 1.6fr 1fr; 
-            grid-template-rows: 1fr 1.5fr 1.1fr; 
+            grid-template-rows: 1fr 1.5fr 1fr; 
         }
         .zone { background-color: #0c0c0c; border: 1px solid #222; border-radius: 4px; display: flex; flex-direction: column; overflow: hidden; }
-        .zone h3 { margin: 0; text-align: center; color: #777; background: #151515; font-size: 11px; padding: 2px 0; border-bottom: 1px solid #222; }
+        .zone h3 { margin: 0; text-align: center; color: #888; background: #181818; font-size: 11px; padding: 3px 0; border-bottom: 1px solid #222; }
         
         #zone-center { grid-area: center; background-color: #1a0505; border: 1px dashed #ff4d4d; }
         #zone-center h3 { color: #ff4d4d; background: #2d0a0a; font-weight: bold; }
@@ -51,50 +56,54 @@
         #zone-3 { grid-area: side3; border-bottom: 2px solid #00a8ff; } 
         #zone-4 { grid-area: side4; border-left: 2px solid #00a8ff; } 
 
-        .teams { flex-grow: 1; overflow-y: auto; padding: 2px; display: flex; flex-direction: column; gap: 3px; }
+        .teams { flex-grow: 1; overflow-y: auto; padding: 3px; display: flex; flex-direction: column; gap: 4px; }
 
-        /* 隊伍卡片極簡化 - 移除地址後的緊湊版 */
+        /* 隊伍卡片設計 */
         .team-card { 
-            background-color: #1a1a1a; border-left: 3px solid #4cd137; 
-            padding: 4px 6px; border-radius: 2px; 
+            background-color: #1a1a1a; border-left: 4px solid #4cd137; 
+            padding: 5px 8px; border-radius: 2px;
         }
-        #zone-center .team-card { border-left: 3px solid #ff4d4d; }
+        #zone-center .team-card { border-left: 4px solid #ff4d4d; }
         
         .team-title { 
-            font-weight: bold; color: #f1c40f; font-size: 12px; 
-            display: flex; justify-content: space-between; margin-bottom: 0px;
+            font-weight: bold; color: #f1c40f; font-size: 14px; 
+            display: flex; justify-content: space-between; margin-bottom: 2px;
         }
-        .team-title span:last-child { color: #fff; font-size: 10px; background: #333; padding: 0 4px; border-radius: 2px; }
+        .team-title span:last-child { color: #fff; font-size: 12px; font-weight: normal; }
 
-        .info-row { font-size: 10px; color: #ddd; line-height: 1.2; }
-        .info-row span { color: #888; margin-right: 3px; }
+        .info-row { font-size: 11px; color: #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .task-text { color: #fff; }
+        
+        /* 醒目的登記時間顏色 */
+        .team-time { color: #00ffcc; font-weight: bold; font-size: 10px; background: rgba(0, 255, 204, 0.1); padding: 1px 4px; border-radius: 3px; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-        .modal-content { background: #111; margin: 10% auto; border: 1px solid #444; width: 90%; max-width: 500px; border-radius: 8px; max-height: 80vh; display: flex; flex-direction: column; }
-        .modal-header { padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        /* Modal 歷史存檔 */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); }
+        .modal-content { background: #111; margin: 10% auto; border: 1px solid #444; width: 92%; max-width: 500px; border-radius: 8px; max-height: 80vh; display: flex; flex-direction: column; }
+        .modal-header { padding: 12px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .modal-body { padding: 10px; overflow-y: auto; font-size: 13px; }
-        .close-btn { color: #888; font-size: 24px; cursor: pointer; }
+        .close-btn { color: #888; font-size: 28px; cursor: pointer; }
 
         .teams::-webkit-scrollbar { width: 2px; }
-        .teams::-webkit-scrollbar-thumb { background: #333; }
+        .teams::-webkit-scrollbar-thumb { background: #444; }
     </style>
 </head>
 <body>
 
     <div class="header-container">
         <div class="header-left">
-            <div class="stats-bar">
-                總計: <span id="grand-total">0</span>人<br>
-                🕒 <span id="real-time">00:00</span>
-            </div>
+            <div class="stats-bar">總兵力: <span id="grand-total">0</span>人</div>
+            <button id="history-btn">歷史紀錄</button>
         </div>
         <div class="header-center">
             <h1 id="task-type">待命中心</h1>
-            <div id="task-address">目前無任務</div>
+            <div id="task-address">案件地址載入中...</div>
         </div>
         <div class="header-right">
-            <button id="history-btn">歷史</button>
+            <div class="live-clock-box">
+                <span class="big-clock" id="current-time">00:00:00</span>
+                <span class="clock-label">CURRENT TIME</span>
+            </div>
         </div>
     </div>
 
@@ -108,7 +117,7 @@
 
     <div id="history-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>歷史任務 (最近10筆)</h3><span class="close-btn" id="close-modal">&times;</span></div>
+            <div class="modal-header"><h3>📑 任務封存紀錄</h3><span class="close-btn" id="close-modal">&times;</span></div>
             <div class="modal-body" id="history-container"></div>
         </div>
     </div>
@@ -130,20 +139,31 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // --- 1. 即時時鐘邏輯 ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('zh-TW', { hour12: false });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 2. 彈窗邏輯 ---
         const modal = document.getElementById("history-modal");
         document.getElementById("history-btn").onclick = () => modal.style.display = "block";
         document.getElementById("close-modal").onclick = () => modal.style.display = "none";
 
+        // --- 3. 任務資訊監聽 ---
         onSnapshot(doc(db, "system_state", "current_task"), (d) => {
             if (d.exists()) {
-                document.getElementById('task-type').innerText = d.data().type || "火警";
+                document.getElementById('task-type').innerText = d.data().type || "火警任務";
                 document.getElementById('task-address').innerText = d.data().address || "-";
             } else {
                 document.getElementById('task-type').innerText = "待命中心";
-                document.getElementById('task-address').innerText = "目前無執行中任務";
+                document.getElementById('task-address').innerText = "目前無執行任務";
             }
         });
 
+        // --- 4. 人員部署監聽 ---
         onSnapshot(collection(db, "fire_deployments"), (snap) => {
             const counts = { 'zone-1':0, 'zone-2':0, 'zone-3':0, 'zone-4':0, 'zone-center':0 };
             let total = 0;
@@ -155,33 +175,38 @@
                 const pNum = parseInt(pStr.replace(/[^0-9]/g, '')) || 0;
                 const side = data.side || "";
                 
+                // 格式化登記時間
+                const regTime = data.updateTime ? data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--";
+
                 let target = 'zone-1';
                 if (side.includes("內部") || side.includes("頂樓")) target = 'zone-center';
                 else if (side.includes("2")) target = 'zone-2';
                 else if (side.includes("3")) target = 'zone-3';
                 else if (side.includes("4")) target = 'zone-4';
 
-                // 移除地址，僅顯示任務
                 const html = `
                     <div class="team-card">
                         <div class="team-title"><span>${data.team}</span><span>${pStr}</span></div>
-                        <div class="info-row"><span>任:</span>${data.task}</div>
+                        <div class="info-row">
+                            <span>任務: <span class="task-text">${data.task}</span></span>
+                            <span class="team-time">${regTime} 回報</span>
+                        </div>
                     </div>`;
                 document.querySelector(`#${target} .teams`).insertAdjacentHTML('beforeend', html);
                 counts[target] += pNum; total += pNum;
             });
             document.getElementById('grand-total').innerText = total;
             for(let k in counts) document.getElementById(`c-${k}`).innerText = counts[k];
-            document.getElementById('real-time').innerText = new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
         });
 
+        // --- 5. 歷史紀錄監聽 ---
         onSnapshot(query(collection(db, "history_logs"), limit(10)), (snap) => {
             const container = document.getElementById('history-container');
-            container.innerHTML = snap.empty ? "無資料" : "";
+            container.innerHTML = snap.empty ? "無紀錄" : "";
             snap.forEach(d => {
                 const data = d.data();
                 const time = data.endTime?.toDate ? data.endTime.toDate().toLocaleString('zh-TW') : "-";
-                container.innerHTML += `<div style="border-bottom:1px solid #333; padding:5px 0;"><b>${data.type}</b> (${time})<br><small>${data.address}</small></div>`;
+                container.innerHTML += `<div style="border-bottom:1px solid #333; padding:8px 0;"><b>${data.type}</b> <small style="color:#666;">(${time})</small><br><small style="color:#00a8ff;">${data.address}</small></div>`;
             });
         });
     </script>
