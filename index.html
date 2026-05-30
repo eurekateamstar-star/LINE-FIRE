@@ -3,36 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>救災即時指揮看板</title>
+    <title>救災即時指揮中心</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: '微軟正黑體', sans-serif; background-color: #050505; color: white; margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header-container { text-align: center; padding: 5px 0; border-bottom: 1px solid #333; flex-shrink: 0; }
-        #task-type { color: #ff4d4d; margin: 0; font-size: 1.2rem; }
-        #task-address { color: #00a8ff; font-size: 0.8rem; margin: 2px 0; }
-        .stats-bar { font-size: 0.7rem; color: #f1c40f; margin-top: 2px; }
-
-        .battleground { display: grid; flex-grow: 1; gap: 4px; grid-template-areas: ". side3 ." "side2 center side4" ". side1 ."; grid-template-columns: 1fr 1.5fr 1fr; grid-template-rows: 1fr 1.3fr 1fr; height: calc(100% - 70px); }
-        .zone { background-color: #111; border: 1px solid #333; border-radius: 4px; display: flex; flex-direction: column; overflow: hidden; }
-        .zone h3 { margin: 0; text-align: center; color: #aaa; background: #222; font-size: 0.7rem; padding: 4px 0; border-bottom: 1px solid #333; }
         
+        /* 頂部標題與按鈕 */
+        .header-container { text-align: center; padding: 8px 0; border-bottom: 1px solid #333; flex-shrink: 0; position: relative; }
+        #task-type { color: #ff4d4d; margin: 0; font-size: 1.3rem; text-shadow: 0 0 10px rgba(255,77,77,0.5); }
+        #task-address { color: #00a8ff; font-size: 0.9rem; margin: 3px 0; }
+        .stats-bar { font-size: 0.75rem; color: #f1c40f; }
+
+        /* 右上角歷史按鈕 */
+        #history-btn { 
+            position: absolute; top: 10px; right: 10px; 
+            background: #222; color: #00ffcc; border: 1px solid #00ffcc; 
+            padding: 5px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;
+            transition: 0.3s; z-index: 10;
+        }
+        #history-btn:hover { background: #00ffcc; color: #000; }
+
+        /* 戰術地圖區 (高度撐滿) */
+        .battleground { display: grid; flex-grow: 1; gap: 4px; grid-template-areas: ". side3 ." "side2 center side4" ". side1 ."; grid-template-columns: 1fr 1.5fr 1fr; grid-template-rows: 1fr 1.4fr 1fr; padding: 5px; }
+        .zone { background-color: #111; border: 1px solid #333; border-radius: 4px; display: flex; flex-direction: column; overflow: hidden; }
+        .zone h3 { margin: 0; text-align: center; color: #aaa; background: #222; font-size: 0.7rem; padding: 5px 0; border-bottom: 1px solid #333; }
         #zone-center { grid-area: center; background-color: #1a0505; border: 1px dashed #ff4d4d; }
         #zone-center h3 { color: #ff4d4d; background: #2d0a0a; font-weight: bold; }
         #zone-1 { grid-area: side1; border-top: 2px solid #00a8ff; } 
-        #zone-2 { grid-area: side2; border-right: 2px solid #00a8ff; } /* 2面在左 */
+        #zone-2 { grid-area: side2; border-right: 2px solid #00a8ff; } 
         #zone-3 { grid-area: side3; border-bottom: 2px solid #00a8ff; } 
-        #zone-4 { grid-area: side4; border-left: 2px solid #00a8ff; } /* 4面在右 */
+        #zone-4 { grid-area: side4; border-left: 2px solid #00a8ff; } 
 
-        .teams { flex-grow: 1; overflow-y: auto; padding: 3px; display: flex; flex-direction: column; gap: 4px; }
-        .team-card { background-color: #222; border-left: 3px solid #4cd137; padding: 4px 6px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
-        #zone-center .team-card { border-left: 3px solid #ff4d4d; }
-        .team-title { font-weight: bold; color: #f1c40f; font-size: 0.8rem; display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .info-row { display: flex; font-size: 0.7rem; color: #ddd; margin-bottom: 1px; }
-        .info-label { color: #888; width: 35px; flex-shrink: 0; }
-        .team-time { color: #555; font-size: 0.6rem; text-align: right; border-top: 1px dotted #333; margin-top: 2px; }
-        
-        .teams::-webkit-scrollbar { width: 2px; }
-        .teams::-webkit-scrollbar-thumb { background: #444; }
+        .teams { flex-grow: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 5px; }
+        .team-card { background-color: #222; border-left: 4px solid #4cd137; padding: 6px 10px; border-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        #zone-center .team-card { border-left: 4px solid #ff4d4d; }
+        .team-title { font-weight: bold; color: #f1c40f; font-size: 0.9rem; display: flex; justify-content: space-between; border-bottom: 1px solid #333; margin-bottom: 4px; }
+        .info-row { font-size: 0.8rem; color: #ddd; margin-bottom: 2px; }
+        .info-label { color: #888; width: 40px; display: inline-block; }
+
+        /* 彈出視窗 (Modal) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); animation: fadeIn 0.3s; }
+        .modal-content { 
+            background-color: #151515; margin: 10% auto; padding: 0; border: 1px solid #444; 
+            width: 85%; max-width: 600px; border-radius: 8px; overflow: hidden;
+            display: flex; flex-direction: column; max-height: 70vh;
+        }
+        .modal-header { padding: 10px; background: #222; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 1rem; color: #00ffcc; }
+        .close-btn { color: #888; font-size: 24px; cursor: pointer; }
+        .modal-body { padding: 10px; overflow-y: auto; }
+
+        /* 歷史項目樣式 */
+        .history-item { border-bottom: 1px solid #333; padding: 10px 0; }
+        .hist-title-row { display: flex; justify-content: space-between; color: #00ffcc; font-weight: bold; font-size: 0.9rem; }
+        .hist-detail { color: #bbb; font-size: 0.8rem; margin-top: 4px; line-height: 1.4; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .teams::-webkit-scrollbar, .modal-body::-webkit-scrollbar { width: 4px; }
+        .teams::-webkit-scrollbar-thumb, .modal-body::-webkit-scrollbar-thumb { background: #444; }
     </style>
 </head>
 <body>
@@ -40,39 +68,68 @@
     <div class="header-container">
         <h1 id="task-type">待命中心</h1>
         <div id="task-address">📭 目前無執行中任務</div>
-        <div class="stats-bar">
-            全場總計: <span id="grand-total">0</span> 人 | <span id="real-time">--:--:--</span>
-        </div>
+        <div class="stats-bar">全場總計: <span id="grand-total">0</span> 人 | <span id="real-time">--:--:--</span></div>
+        <button id="history-btn">📑 歷史紀錄</button>
     </div>
 
+    <!-- 即時看板 -->
     <div class="battleground">
         <div id="zone-3" class="zone"><h3>3面(後) <span id="c-zone-3">0</span></h3><div class="teams"></div></div>
         <div id="zone-2" class="zone"><h3>2面(左) <span id="c-zone-2">0</span></h3><div class="teams"></div></div>
-        <div id="zone-center" class="zone"><h3>🔥內部 <span id="c-zone-center">0</span></h3><div class="teams"></div></div>
+        <div id="zone-center" class="zone"><h3>🔥 內部 <span id="c-zone-center">0</span></h3><div class="teams"></div></div>
         <div id="zone-4" class="zone"><h3>4面(右) <span id="c-zone-4">0</span></h3><div class="teams"></div></div>
         <div id="zone-1" class="zone"><h3>1面(前) <span id="c-zone-1">0</span></h3><div class="teams"></div></div>
     </div>
 
+    <!-- 歷史紀錄彈出框 -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📑 歷史任務封存紀錄 (最近10筆)</h2>
+                <span class="close-btn" id="close-modal">&times;</span>
+            </div>
+            <div class="modal-body" id="history-container">
+                <div style="text-align:center; padding:20px; color:#555;">載入中...</div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, query, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* 這裡填入你的 Firebase Config */ };
+        // 🔴 請務必更換成您截圖中的 Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A",
+            authDomain: "clawone-6445c.firebaseapp.com",
+            projectId: "clawone-6445c",
+            storageBucket: "clawone-6445c.firebasestorage.app",
+            messagingSenderId: "945236029933",
+            appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4",
+            measurementId: "G-JEB18KRCXS"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. 監聽任務狀態
+        // --- 視窗開關邏輯 ---
+        const modal = document.getElementById("history-modal");
+        document.getElementById("history-btn").onclick = () => modal.style.display = "block";
+        document.getElementById("close-modal").onclick = () => modal.style.display = "none";
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; }
+
+        // 1. 監聽目前任務
         onSnapshot(doc(db, "system_state", "current_task"), (d) => {
             if (d.exists()) {
-                document.getElementById('task-type').innerText = "🔥 " + d.data().type;
-                document.getElementById('task-address').innerText = "📍 " + d.data().address;
+                document.getElementById('task-type').innerText = "🔥 " + (d.data().type || "");
+                document.getElementById('task-address').innerText = "📍 " + (d.data().address || "");
             } else {
                 document.getElementById('task-type').innerText = "待命中心";
                 document.getElementById('task-address').innerText = "📭 目前無執行中任務";
             }
         });
 
-        // 2. 監聽人員部署
+        // 2. 監聽人員配置
         onSnapshot(collection(db, "fire_deployments"), (snap) => {
             const counts = { 'zone-1':0, 'zone-2':0, 'zone-3':0, 'zone-4':0, 'zone-center':0 };
             let total = 0;
@@ -80,19 +137,46 @@
 
             snap.forEach(d => {
                 const data = d.data();
-                const p = parseInt(data.people) || 0;
-                const time = data.updateTime ? data.updateTime.toDate().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}) : "--:--";
+                const pStr = String(data.people || "0");
+                const pNum = parseInt(pStr.replace(/[^0-9]/g, '')) || 0;
                 const side = data.side || "";
-                let target = side.includes("內部")||side.includes("頂樓") ? 'zone-center' : (side.includes("1")?'zone-1':(side.includes("2")?'zone-2':(side.includes("3")?'zone-3':'zone-4')));
+                
+                let target = 'zone-1';
+                if (side.includes("內部") || side.includes("頂樓")) target = 'zone-center';
+                else if (side.includes("2")) target = 'zone-2';
+                else if (side.includes("3")) target = 'zone-3';
+                else if (side.includes("4")) target = 'zone-4';
 
-                const html = `<div class="team-card"><div class="team-title"><span>${data.team}</span><span>${p}人</span></div><div class="info-row"><div class="info-label">任務:</div><div>${data.task}</div></div><div class="info-row"><div class="info-label">位置:</div><div>${data.address}</div></div><div class="team-time">${time}</div></div>`;
+                const html = `<div class="team-card"><div class="team-title"><span>${data.team}</span><span>${pStr}</span></div><div class="info-row"><span class="info-label">任務:</span>${data.task}</div><div class="info-row"><span class="info-label">位置:</span>${data.address}</div></div>`;
                 document.querySelector(`#${target} .teams`).insertAdjacentHTML('beforeend', html);
-                counts[target] += p; total += p;
+                counts[target] += pNum; total += pNum;
             });
-
             document.getElementById('grand-total').innerText = total;
-            for(let key in counts) document.getElementById(`c-${key}`).innerText = counts[key] + "人";
-            document.getElementById('real-time').innerText = new Date().toLocaleTimeString();
+            for(let k in counts) document.getElementById(`c-${k}`).innerText = counts[k];
+            document.getElementById('real-time').innerText = new Date().toLocaleTimeString('zh-TW', {hour12:false});
+        });
+
+        // 3. 監聽歷史紀錄
+        const qHist = query(collection(db, "history_logs"), limit(10));
+        onSnapshot(qHist, (snap) => {
+            const container = document.getElementById('history-container');
+            container.innerHTML = "";
+            if (snap.empty) {
+                container.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>暫無歷史資料</div>";
+                return;
+            }
+            snap.forEach(d => {
+                const data = d.data();
+                const timeStr = data.endTime?.toDate ? data.endTime.toDate().toLocaleString('zh-TW') : "時間不詳";
+                const depList = (data.deployments || []).map(m => `${m.team}(${m.people})`).join("、");
+                
+                container.innerHTML += `
+                    <div class="history-item">
+                        <div class="hist-title-row"><span>🚒 ${data.type}</span><span>🕒 ${timeStr}</span></div>
+                        <div class="hist-detail">📍 地址：${data.address}</div>
+                        <div class="hist-detail">👥 參與分隊：${depList || "無部署資料"}</div>
+                    </div>`;
+            });
         });
     </script>
 </body>
