@@ -6,189 +6,140 @@
     <title>火場戰術指揮系統 - 手機十字極限版</title>
     <style>
         :root {
-            --frame-gray: #3a3f42;
-            --inner-bg: #121416;
-            --neon-blue: #3399ff;
-            --neon-red: #ff4d4d;
-            --neon-gold: #ffcc00;
-            --neon-green: #00ffaa; /* 科技青綠螢光色 */
-            --safe-green: #28a745;
+            --frame-gray: #3a3f42; --inner-bg: #121416; --neon-blue: #3399ff;
+            --neon-red: #ff4d4d; --neon-gold: #ffcc00; --neon-green: #00ffaa;
+            --safe-green: #28a745; --evac-orange: #fd7e14;
         }
 
         * { box-sizing: border-box; }
         body { 
             font-family: 'Noto Sans TC', '微軟正黑體', sans-serif; 
-            background-color: #050505; 
-            color: #eee; 
-            margin: 0; padding: 0; 
-            height: 100vh; /* 鎖定滿版高度 */
-            width: 100vw; 
-            overflow: hidden; /* 禁止整個網頁滑動 */
-            display: flex; flex-direction: column;
+            background-color: #050505; color: #eee; 
+            margin: 0; padding: 0; height: 100vh; width: 100vw; 
+            overflow: hidden; display: flex; flex-direction: column;
         }
 
-        /* --- 頂部列：極度壓縮 (高度僅 50px) --- */
+        /* 頂部列 */
         .compact-header {
             display: flex; justify-content: space-between; align-items: center;
-            background: #111; border-bottom: 2px solid #333;
-            padding: 2px 10px; height: 50px; flex-shrink: 0;
+            background: #111; border-bottom: 2px solid #333; padding: 2px 10px; height: 50px; flex-shrink: 0;
         }
-
-        /* 左側：總人數 */
         .header-left { flex: 1; display: flex; flex-direction: column; align-items: flex-start; }
         .stat-label { font-size: 9px; color: #888; font-weight: bold; letter-spacing: 1px;}
         .stat-val { font-size: 20px; color: var(--neon-gold); font-family: Impact, sans-serif; line-height: 1; margin-top: 1px; }
 
-        /* 中間：案件資訊 */
         .header-center { flex: 2; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden;}
         #task-type { color: var(--neon-red); font-size: 15px; font-weight: 900; margin: 0; letter-spacing: 1px; white-space: nowrap; }
         #task-address { color: var(--neon-blue); font-size: 10px; margin-top: 2px; white-space: nowrap; font-weight: bold;}
 
-        /* 右側：日期、時間 */
         .header-right { flex: 1; display: flex; flex-direction: column; align-items: flex-end; }
         #live-date { color: #88ccff; font-size: 9px; font-family: monospace; font-weight: bold; margin-bottom: 2px;}
         #live-clock { color: var(--neon-green); font-size: 14px; font-family: monospace; font-weight: bold; line-height: 1; }
 
-        /* --- 十字網格：調整比例讓左右稍微寬一點 --- */
+        /* 十字網格 - 主畫面與回放畫面共用 */
         .tactical-grid { 
             display: grid; flex-grow: 1; padding: 4px; gap: 4px;
-            /* 1.15fr 讓左右兩邊比原本寬一點點，中間維持最大 */
             grid-template-columns: 1.15fr 1.3fr 1.15fr; 
             grid-template-rows: 1fr 1.3fr 1fr; 
             grid-template-areas: 
                 ". s3 ." 
                 "s2 core s4" 
-                ". s1 ."; 
+                "standby s1 ."; 
             height: calc(100vh - 50px);
         }
 
-        /* 區域外框 */
-        .heavy-sector { 
-            background: var(--inner-bg); border: 1px solid var(--frame-gray);
-            border-radius: 4px; display: flex; flex-direction: column; overflow: hidden;
-        }
+        .heavy-sector { background: var(--inner-bg); border: 1px solid var(--frame-gray); border-radius: 4px; display: flex; flex-direction: column; overflow: hidden; }
+        .sector-head { background: #2a2d31; padding: 2px 5px; font-size: 10px; font-weight: bold; border-bottom: 1px solid #000; display: flex; justify-content: space-between; align-items: center; color: #ccc; }
+        .sector-count { background: #000; color: var(--neon-gold); padding: 1px 5px; border-radius: 6px; font-size: 11px; border: 1px solid #444; }
 
-        /* 縮寫標題列 */
-        .sector-head { 
-            background: #2a2d31; padding: 2px 5px; font-size: 10px; font-weight: bold;
-            border-bottom: 1px solid #000; display: flex; justify-content: space-between;
-            align-items: center; color: #ccc;
-        }
-        .sector-count { 
-            background: #000; color: var(--neon-gold); 
-            padding: 1px 5px; border-radius: 6px; font-size: 11px; border: 1px solid #444;
-        }
+        .zone-core { grid-area: core; border-color: #5a1a1a; box-shadow: inset 0 0 15px rgba(255, 51, 51, 0.15); }
+        .zone-core .sector-head { background: #660000; color: #fff; border-bottom: 1px solid var(--neon-red); }
+        .zone-1 { grid-area: s1; border-top: 2px solid var(--neon-blue); } 
+        .zone-2 { grid-area: s2; border-right: 2px solid var(--neon-blue); } 
+        .zone-3 { grid-area: s3; border-bottom: 2px solid var(--neon-blue); } 
+        .zone-4 { grid-area: s4; border-left: 2px solid var(--neon-blue); } 
+        .zone-standby { grid-area: standby; border-top: 2px solid var(--neon-gold); } 
+        .zone-standby .sector-head { color: var(--neon-gold); }
 
-        /* 內部入室區 */
-        #zone-center { grid-area: core; border-color: #5a1a1a; box-shadow: inset 0 0 15px rgba(255, 51, 51, 0.15); }
-        #zone-center .sector-head { background: #660000; color: #fff; border-bottom: 1px solid var(--neon-red); }
-        
-        #zone-1 { grid-area: s1; border-top: 2px solid var(--neon-blue); } 
-        #zone-2 { grid-area: s2; border-right: 2px solid var(--neon-blue); } 
-        #zone-3 { grid-area: s3; border-bottom: 2px solid var(--neon-blue); } 
-        #zone-4 { grid-area: s4; border-left: 2px solid var(--neon-blue); } 
-
-        /* 隊伍列表 (獨立滾動) */
         .unit-list { flex-grow: 1; overflow-y: auto; padding: 3px; display: flex; flex-direction: column; gap: 3px; }
 
-        /* --- 緊湊型卡片：極限防斷行設計 --- */
+        /* 卡片設計與懸停顯示姓名 */
         .unit-plate { 
             background: #1a1c1e; border: 1px solid #333; 
             border-left: 3px solid var(--safe-green);
             padding: 3px 4px; border-radius: 3px;
         }
-        #zone-center .unit-plate { border-left-color: var(--neon-red); }
+        .zone-core .unit-plate { border-left-color: var(--neon-red); }
+        .plate-standby { border-left-color: var(--neon-gold) !important; }
 
         .plate-row { display: flex; justify-content: space-between; align-items: center; }
         
-        /* 強制單行，超出變點點點 */
-        .unit-name { 
-            font-weight: bold; color: var(--neon-gold); font-size: 11px; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            flex-grow: 1; margin-right: 4px;
+        .unit-name { font-weight: bold; color: var(--neon-gold); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; margin-right: 4px; }
+        
+        /* 🟢 懸停顯示名字的黑魔法 */
+        .reporter-name {
+            color: #66b3ff; font-size: 9px; font-weight: normal; margin-left: 5px;
+            opacity: 0; transition: opacity 0.2s ease-in-out; display: inline-block;
         }
-        /* 人數區塊縮小 */
+        /* 電腦：滑鼠移上去顯示 / 手機：按住顯示 */
+        .unit-plate:hover .reporter-name, .unit-plate:active .reporter-name {
+            opacity: 1;
+        }
+
         .unit-pax { color: #fff; font-size: 10px; background: #000; padding: 1px 3px; border-radius: 2px; white-space: nowrap; flex-shrink: 0;}
-        
-        .unit-task { 
-            color: #ccc; font-size: 10px; font-weight: bold; margin-top: 2px; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;
-        }
-        
-        /* 移除"回報"二字，保留螢光色 */
+        .unit-task { color: #ccc; font-size: 10px; font-weight: bold; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
         .unit-time { color: var(--neon-green); font-family: monospace; font-size: 10px; font-weight: bold; margin-top: 2px; white-space: nowrap;}
 
-        /* --- 右下角浮動歷史按鈕 --- */
-        #floating-history-btn {
-            position: fixed; bottom: 10px; right: 10px; z-index: 500;
-            background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px);
-            border: 1px solid #666; color: #fff; 
-            padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer;
-        }
-
-        /* 歷史紀錄彈出視窗 */
+        /* 浮動按鈕群 */
+        .btn-group { position: fixed; bottom: 10px; right: 10px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
+        .float-btn { background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px); border: 1px solid #666; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; text-align: center; }
+        #evac-btn { border-color: var(--evac-orange); color: var(--evac-orange); }
+        
+        /* 彈出視窗 */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
         .modal-box { background: #1a1c1e; border: 2px solid #555; width: 90%; max-width: 600px; margin: 15% auto; max-height: 70vh; border-radius: 6px; display: flex; flex-direction: column; }
         .modal-head { padding: 12px; background: #000; color: var(--neon-gold); font-size: 15px; font-weight: bold; text-align: center; border-bottom: 1px solid #444; }
-        .log-item { padding: 10px; border-bottom: 1px solid #333; color: #ccc; font-size: 13px; }
+        .log-item { padding: 10px; border-bottom: 1px solid #333; color: #ccc; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; align-items: center;}
+        .log-item:hover { background: #222; }
         .close-btn { background: #aa0000; color: #fff; border: none; padding: 12px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
-        /* 隱藏捲軸使其更美觀 */
+        /* 戰術回放全螢幕視窗 */
+        #playback-modal .modal-box { width: 98%; max-width: 1000px; height: 95vh; max-height: 95vh; margin: 2% auto; background: #050505; border-color: var(--neon-blue); display: flex; flex-direction: column;}
+        #pb-title { background: #002244; color: var(--neon-blue); border-bottom: 2px solid var(--neon-blue); }
+        #playback-modal .tactical-grid { height: auto; flex-grow: 1; }
+        
+        /* 回放視窗內的撤離名單專區 */
+        .pb-evac-zone { background: #111; border-top: 1px solid #333; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; max-height: 120px; overflow-y: auto;}
+        .pb-evac-tag { background: #220000; border: 1px solid var(--evac-orange); color: var(--evac-orange); font-size: 10px; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center;}
+
         ::-webkit-scrollbar { display: none; } 
     </style>
 </head>
 <body>
 
-    <!-- 頂部列 (極致壓縮版) -->
     <div class="compact-header">
-        <div class="header-left">
-            <span class="stat-label">現場人數</span>
-            <div class="stat-val" id="grand-total">0</div>
-        </div>
-        
-        <div class="header-center">
-            <h1 id="task-type">系統待命中</h1>
-            <div id="task-address">等待派遣指令...</div>
-        </div>
-
-        <div class="header-right">
-            <span id="live-date">YYYY-MM-DD</span>
-            <span id="live-clock">00:00:00</span>
-        </div>
+        <div class="header-left"><span class="stat-label">現場人數</span><div class="stat-val" id="grand-total">0</div></div>
+        <div class="header-center"><h1 id="task-type">系統待命中</h1><div id="task-address">等待派遣指令...</div></div>
+        <div class="header-right"><span id="live-date">YYYY-MM-DD</span><span id="live-clock">00:00:00</span></div>
     </div>
 
-    <!-- 十字佈署網格 -->
-    <div class="tactical-grid">
-        <div id="zone-3" class="heavy-sector">
-            <div class="sector-head"><span>3面(後)</span><span class="sector-count" id="c-zone-3">0</span></div>
-            <div class="unit-list"></div>
-        </div>
-        <div id="zone-2" class="heavy-sector">
-            <div class="sector-head"><span>2面(左)</span><span class="sector-count" id="c-zone-2">0</span></div>
-            <div class="unit-list"></div>
-        </div>
-        
-        <!-- 核心重地 -->
-        <div id="zone-center" class="heavy-sector">
-            <div class="sector-head"><span>內部/頂樓</span><span class="sector-count" id="c-zone-center">0</span></div>
-            <div class="unit-list"></div>
-        </div>
-        
-        <div id="zone-4" class="heavy-sector">
-            <div class="sector-head"><span>4面(右)</span><span class="sector-count" id="c-zone-4">0</span></div>
-            <div class="unit-list"></div>
-        </div>
-        <div id="zone-1" class="heavy-sector">
-            <div class="sector-head"><span>1面(正)</span><span class="sector-count" id="c-zone-1">0</span></div>
-            <div class="unit-list"></div>
-        </div>
+    <!-- 主畫面十字網格 -->
+    <div class="tactical-grid" id="main-grid">
+        <div class="heavy-sector zone-3" id="zone-3"><div class="sector-head"><span>3面(後)</span><span class="sector-count" id="c-zone-3">0</span></div><div class="unit-list"></div></div>
+        <div class="heavy-sector zone-2" id="zone-2"><div class="sector-head"><span>2面(左)</span><span class="sector-count" id="c-zone-2">0</span></div><div class="unit-list"></div></div>
+        <div class="heavy-sector zone-core" id="zone-center"><div class="sector-head"><span>內部/頂樓</span><span class="sector-count" id="c-zone-center">0</span></div><div class="unit-list"></div></div>
+        <div class="heavy-sector zone-4" id="zone-4"><div class="sector-head"><span>4面(右)</span><span class="sector-count" id="c-zone-4">0</span></div><div class="unit-list"></div></div>
+        <div class="heavy-sector zone-standby" id="zone-standby"><div class="sector-head"><span>待命集結</span><span class="sector-count" id="c-zone-standby">0</span></div><div class="unit-list"></div></div>
+        <div class="heavy-sector zone-1" id="zone-1"><div class="sector-head"><span>1面(正)</span><span class="sector-count" id="c-zone-1">0</span></div><div class="unit-list"></div></div>
     </div>
 
-    <!-- 右下角浮動按鈕 -->
-    <button id="floating-history-btn" onclick="document.getElementById('history-modal').style.display='block'">歷史紀錄</button>
+    <!-- 右下角按鈕群 -->
+    <div class="btn-group">
+        <div class="float-btn" id="evac-btn" onclick="document.getElementById('evac-modal').style.display='block'">撤離名單 (0)</div>
+        <div class="float-btn" onclick="document.getElementById('history-modal').style.display='block'">歷史紀錄</div>
+    </div>
 
-    <!-- 歷史紀錄彈出視窗 -->
+    <!-- 歷史紀錄列表視窗 -->
     <div id="history-modal" class="modal">
         <div class="modal-box">
             <div class="modal-head">歷史任務歸檔紀錄</div>
@@ -197,36 +148,57 @@
         </div>
     </div>
 
+    <!-- 撤離名單視窗 -->
+    <div id="evac-modal" class="modal">
+        <div class="modal-box" style="border-color: var(--evac-orange);">
+            <div class="modal-head" style="color: var(--evac-orange);">已撤離分隊名單</div>
+            <div id="evac-container" style="padding:10px; overflow-y:auto; flex-grow: 1;">目前無人撤離</div>
+            <button class="close-btn" onclick="document.getElementById('evac-modal').style.display='none'">關閉視窗</button>
+        </div>
+    </div>
+
+    <!-- 🟢 戰術回放全螢幕視窗 -->
+    <div id="playback-modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-head" id="pb-title">戰術回放：載入中...</div>
+            
+            <!-- 回放的十字網格 (完美對應 CSS 類別) -->
+            <div class="tactical-grid" id="pb-grid">
+                <div class="heavy-sector zone-3" id="pb-zone-3"><div class="sector-head"><span>3面(後)</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-2" id="pb-zone-2"><div class="sector-head"><span>2面(左)</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-core" id="pb-zone-center"><div class="sector-head"><span>內部/頂樓</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-4" id="pb-zone-4"><div class="sector-head"><span>4面(右)</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-standby" id="pb-zone-standby"><div class="sector-head"><span>待命集結</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-1" id="pb-zone-1"><div class="sector-head"><span>1面(正)</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+            </div>
+
+            <!-- 回放畫面的撤離名單 -->
+            <div class="pb-evac-zone" id="pb-evac-list">
+                <span style="color:#666; font-size:11px; width:100%;">此案無撤離紀錄</span>
+            </div>
+
+            <button class="close-btn" onclick="document.getElementById('playback-modal').style.display='none'">關閉回放視窗</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, query, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, query, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A",
-            authDomain: "clawone-6445c.firebaseapp.com",
-            projectId: "clawone-6445c",
-            storageBucket: "clawone-6445c.firebasestorage.app",
-            messagingSenderId: "945236029933",
-            appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4",
-            measurementId: "G-JEB18KRCXS"
+            apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", authDomain: "clawone-6445c.firebaseapp.com", projectId: "clawone-6445c", storageBucket: "clawone-6445c.firebasestorage.app", messagingSenderId: "945236029933", appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- 時鐘與日期 ---
         setInterval(() => {
             const now = new Date();
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const d = String(now.getDate()).padStart(2, '0');
+            const y = now.getFullYear(); const m = String(now.getMonth() + 1).padStart(2, '0'); const d = String(now.getDate()).padStart(2, '0');
             const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-            
             document.getElementById('live-date').innerText = `${y}-${m}-${d} (${weekdays[now.getDay()]})`;
             document.getElementById('live-clock').innerText = now.toLocaleTimeString('zh-TW', { hour12: false });
         }, 1000);
 
-        // --- 監聽當前任務 ---
         onSnapshot(doc(db, "system_state", "current_task"), (d) => {
             if (d.exists()) {
                 document.getElementById('task-type').innerText = d.data().type;
@@ -237,55 +209,113 @@
             }
         });
 
-        // --- 監聽現場部隊佈署 ---
-        onSnapshot(collection(db, "fire_deployments"), (snap) => {
-            const counts = { 'zone-1':0, 'zone-2':0, 'zone-3':0, 'zone-4':0, 'zone-center':0 };
-            let total = 0;
+        // 🟢 生成卡片的 HTML (加入 reporter-name)
+        function createCardHtml(data) {
+            const pStr = String(data.people || "0");
+            const side = data.side || "";
+            const taskStr = data.task || "";
             
-            document.querySelectorAll('.unit-list').forEach(el => el.innerHTML = "");
+            // 處理時間 (支援回放的字串時間 或 即時的 Timestamp)
+            let time = "--:--";
+            if (data.updateTime && data.updateTime.toDate) time = data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+            else if (data.updateTime && typeof data.updateTime === 'string') time = data.updateTime.substring(11, 16);
+
+            const reporter = (data.reportedBy && data.reportedBy.name) ? data.reportedBy.name : "未知";
+            let plateClass = "unit-plate"; 
+            if (taskStr.includes("待命") || side.includes("集結") || side.includes("外部")) plateClass += " plate-standby";
+
+            return `
+                <div class="${plateClass}">
+                    <div class="plate-row">
+                        <span class="unit-name">${data.team} <span class="reporter-name">👤${reporter}</span></span>
+                        <span class="unit-pax">${pStr}</span>
+                    </div>
+                    <div class="plate-row">
+                        <span class="unit-task">${taskStr}</span>
+                        <span class="unit-time">${time}</span>
+                    </div>
+                </div>`;
+        }
+
+        function getTargetZone(side) {
+            if (side.includes("內部") || side.includes("頂樓")) return 'center';
+            if (side.includes("2")) return '2';
+            if (side.includes("3")) return '3';
+            if (side.includes("4")) return '4';
+            if (side.includes("集結") || side.includes("外部")) return 'standby';
+            return '1';
+        }
+
+        // 主畫面監聽
+        onSnapshot(collection(db, "fire_deployments"), (snap) => {
+            const counts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 };
+            let total = 0;
+            document.querySelectorAll('#main-grid .unit-list').forEach(el => el.innerHTML = "");
 
             snap.forEach(d => {
                 const data = d.data();
-                const pStr = String(data.people || "0");
-                const pNum = parseInt(pStr.replace(/[^0-9]/g, '')) || 0;
-                const side = data.side || "";
-                const time = data.updateTime ? data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--";
-
-                let target = 'zone-1';
-                if (side.includes("內部") || side.includes("頂樓")) target = 'zone-center';
-                else if (side.includes("2")) target = 'zone-2';
-                else if (side.includes("3")) target = 'zone-3';
-                else if (side.includes("4")) target = 'zone-4';
-
-                // 極度壓縮防斷行卡片
-                const html = `
-                    <div class="unit-plate">
-                        <div class="plate-row">
-                            <span class="unit-name">${data.team}</span>
-                            <span class="unit-pax">${pStr}</span>
-                        </div>
-                        <div class="plate-row">
-                            <span class="unit-task">${data.task}</span>
-                            <span class="unit-time">${time}</span>
-                        </div>
-                    </div>`;
-                document.querySelector(`#${target} .unit-list`).insertAdjacentHTML('beforeend', html);
+                const target = getTargetZone(data.side || "");
+                const pNum = parseInt(String(data.people || "0").replace(/[^0-9]/g, '')) || 0;
                 
-                counts[target] += pNum; 
-                total += pNum;
+                document.querySelector(`#zone-${target} .unit-list`).insertAdjacentHTML('beforeend', createCardHtml(data));
+                counts[target] += pNum; total += pNum;
             });
-            
             document.getElementById('grand-total').innerText = total;
-            for(let k in counts) document.getElementById(`c-${k}`).innerText = counts[k];
+            for(let k in counts) document.getElementById(`c-zone-${k}`).innerText = counts[k];
         });
 
-        // --- 歷史紀錄 ---
-        onSnapshot(query(collection(db, "history_logs"), limit(10)), (snap) => {
+        // 撤離名單
+        onSnapshot(collection(db, "fire_evacuations"), (snap) => {
+            const container = document.getElementById('evac-container');
+            const btn = document.getElementById('evac-btn');
+            container.innerHTML = ""; let evacCount = 0;
+            snap.forEach(d => {
+                evacCount++; const data = d.data();
+                const time = data.evacTime ? data.evacTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : "--:--";
+                const evacBy = (data.evacBy && data.evacBy.name) ? data.evacBy.name : "未知";
+                container.innerHTML += `
+                    <div class="log-item" style="border-left: 3px solid var(--evac-orange); padding-left: 8px;">
+                        <span><b style="color:#fff;">${data.team}</b> (${data.people})</span>
+                        <span style="font-size: 11px; color: #888;">👤${evacBy} | 撤離於 ${time}</span>
+                    </div>`;
+            });
+            btn.innerText = `撤離名單 (${evacCount})`;
+            if (evacCount === 0) container.innerHTML = "目前無人撤離";
+        });
+
+        // 歷史紀錄 (包含撤離資料抓取)
+        onSnapshot(query(collection(db, "history_logs"), orderBy("endTime", "desc"), limit(10)), (snap) => {
             const container = document.getElementById('history-container');
             container.innerHTML = "";
             snap.forEach(d => {
-                container.innerHTML += `<div class="log-item">${d.data().type} - ${d.data().address}</div>`;
+                const data = d.data();
+                const div = document.createElement('div');
+                div.className = 'log-item';
+                div.innerHTML = `<span><b>${data.type}</b> - ${data.address}</span> <span style="color:var(--neon-blue); font-size:11px;">▶ 戰術回放</span>`;
+                
+                // 點擊觸發戰術回放
+                div.onclick = async () => {
+                    document.getElementById('pb-title').innerText = `[結案回放] ${data.type} | ${data.address}`;
+                    document.querySelectorAll('#pb-grid .unit-list').forEach(el => el.innerHTML = "");
+                    
+                    // 1. 填入佈署部隊
+                    if(data.deployments && data.deployments.length > 0) {
+                        data.deployments.forEach(unit => {
+                            const target = getTargetZone(unit.side || "");
+                            document.querySelector(`#pb-zone-${target} .unit-list`).insertAdjacentHTML('beforeend', createCardHtml(unit));
+                        });
+                    }
+
+                    // 2. 顯示撤離部隊 (這部分未來你需要在後台結案時把撤離名單一併寫入history，目前暫時以文字顯示)
+                    const evacList = document.getElementById('pb-evac-list');
+                    evacList.innerHTML = `<span style="color:#888; font-size:11px;">(如需顯示歷史撤離，需更新後台結案邏輯將 fire_evacuations 存入 history)</span>`;
+
+                    document.getElementById('history-modal').style.display = 'none';
+                    document.getElementById('playback-modal').style.display = 'block';
+                };
+                container.appendChild(div);
             });
+            if(snap.empty) container.innerHTML = "目前尚無結案紀錄";
         });
     </script>
 </body>
