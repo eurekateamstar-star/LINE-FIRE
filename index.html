@@ -36,15 +36,15 @@
         #live-date { color: #88ccff; font-size: 9px; font-family: monospace; font-weight: bold; margin-bottom: 2px;}
         #live-clock { color: var(--neon-green); font-size: 14px; font-family: monospace; font-weight: bold; line-height: 1; }
 
-        /* 十字網格 - 縮小中間火場 core 比例，放大各面與底部一面空間 */
+        /* 🟢 十字網格最佳化 (移除主畫面待命格，一面橫跨整底排) */
         .tactical-grid { 
             display: grid; flex-grow: 1; padding: 4px; gap: 4px;
-            grid-template-columns: 1.25fr 0.85fr 1.25fr; 
-            grid-template-rows: 1.0fr 0.75fr 1.35fr; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            grid-template-rows: 1fr 1fr 1.25fr; 
             grid-template-areas: 
                 ". s3 ." 
                 "s2 core s4" 
-                "standby s1 ."; 
+                "s1 s1 s1"; 
             height: calc(100vh - 50px);
         }
 
@@ -58,10 +58,8 @@
         .zone-2 { grid-area: s2; border-right: 2px solid var(--neon-blue); } 
         .zone-3 { grid-area: s3; border-bottom: 2px solid var(--neon-blue); } 
         .zone-4 { grid-area: s4; border-left: 2px solid var(--neon-blue); } 
-        .zone-standby { grid-area: standby; border-top: 2px solid var(--neon-gold); } 
-        .zone-standby .sector-head { color: var(--neon-gold); }
 
-        /* 智慧網格佈局：預設單排，當子元素大於等於 2 個時，自動切換為雙排 */
+        /* 智慧網格佈局：多個分隊時自動切換為雙排 */
         .unit-list { 
             flex-grow: 1; 
             overflow-y: auto; 
@@ -102,6 +100,7 @@
         .btn-group { position: fixed; bottom: 10px; right: 10px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
         .float-btn { background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px); border: 1px solid #666; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; text-align: center; }
         #evac-btn { border-color: var(--evac-orange); color: var(--evac-orange); }
+        #standby-btn { border-color: var(--neon-gold); color: var(--neon-gold); } /* 🟡 金色待命按鈕 */
         
         /* 彈出視窗 */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
@@ -119,7 +118,7 @@
         /* 回放視窗內的撤離名單專區 */
         .pb-evac-zone { background: #111; border-top: 1px solid #333; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; max-height: 120px; overflow-y: auto;}
 
-        /* 改良版 Toast 提示 (手機上方彈出) */
+        /* 改良版 Toast 提示 */
         #toast { 
             position: fixed; top: -60px; left: 50%; transform: translateX(-50%); 
             background: rgba(0, 0, 0, 0.95); color: #fff; padding: 10px 20px; 
@@ -143,28 +142,30 @@
         <div class="header-right"><span id="live-date">YYYY-MM-DD</span><span id="live-clock">00:00:00</span></div>
     </div>
 
-    <!-- 主畫面十字網格 (火場與方位精簡版) -->
+    <!-- 主畫面十字網格 (移除待命格，一面滿檔) -->
     <div class="tactical-grid" id="main-grid">
         <div class="heavy-sector zone-3" id="zone-3"><div class="sector-head"><span>三面</span><span class="sector-count" id="c-zone-3">0</span></div><div class="unit-list"></div></div>
         <div class="heavy-sector zone-2" id="zone-2"><div class="sector-head"><span>二面</span><span class="sector-count" id="c-zone-2">0</span></div><div class="unit-list"></div></div>
         <div class="heavy-sector zone-core" id="zone-center"><div class="sector-head"><span>火場</span><span class="sector-count" id="c-zone-center">0</span></div><div class="unit-list"></div></div>
         <div class="heavy-sector zone-4" id="zone-4"><div class="sector-head"><span>四面</span><span class="sector-count" id="c-zone-4">0</span></div><div class="unit-list"></div></div>
-        <div class="heavy-sector zone-standby" id="zone-standby"><div class="sector-head"><span>待命集結</span><span class="sector-count" id="c-zone-standby">0</span></div><div class="unit-list"></div></div>
         <div class="heavy-sector zone-1" id="zone-1"><div class="sector-head"><span>一面</span><span class="sector-count" id="c-zone-1">0</span></div><div class="unit-list"></div></div>
     </div>
 
-    <!-- 右下角按鈕群 -->
+    <!-- 右下角按鈕群 (新增 🟡待命名單按鈕) -->
     <div class="btn-group">
+        <div class="float-btn" id="standby-btn" onclick="document.getElementById('standby-modal').style.display='block'">待命名單 (0)</div>
         <div class="float-btn" id="evac-btn" onclick="document.getElementById('evac-modal').style.display='block'">撤離名單 (0)</div>
         <div class="float-btn" onclick="document.getElementById('history-modal').style.display='block'">歷史紀錄</div>
     </div>
 
-    <!-- 歷史紀錄列表視窗 -->
-    <div id="history-modal" class="modal">
-        <div class="modal-box">
-            <div class="modal-head">歷史任務歸檔紀錄</div>
-            <div id="history-container" style="padding:10px; overflow-y:auto; flex-grow: 1;"></div>
-            <button class="close-btn" onclick="document.getElementById('history-modal').style.display='none'">關閉視窗</button>
+    <!-- 🟡 待命名單視窗 (雙列卡片網格，排版精美) -->
+    <div id="standby-modal" class="modal">
+        <div class="modal-box" style="border-color: var(--neon-gold); max-width: 480px;">
+            <div class="modal-head" style="color: var(--neon-gold);">目前待命集結分隊</div>
+            <div id="standby-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; flex-grow: 1;">
+                目前無待命分隊
+            </div>
+            <button class="close-btn" onclick="document.getElementById('standby-modal').style.display='none'">關閉視窗</button>
         </div>
     </div>
 
@@ -174,6 +175,15 @@
             <div class="modal-head" style="color: var(--evac-orange);">已撤離分隊名單</div>
             <div id="evac-container" style="padding:10px; overflow-y:auto; flex-grow: 1;">目前無人撤離</div>
             <button class="close-btn" onclick="document.getElementById('evac-modal').style.display='none'">關閉視窗</button>
+        </div>
+    </div>
+
+    <!-- 歷史紀錄列表視窗 -->
+    <div id="history-modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-head">歷史任務歸檔紀錄</div>
+            <div id="history-container" style="padding:10px; overflow-y:auto; flex-grow: 1;"></div>
+            <button class="close-btn" onclick="document.getElementById('history-modal').style.display='none'">關閉視窗</button>
         </div>
     </div>
 
@@ -187,7 +197,6 @@
                 <div class="heavy-sector zone-2" id="pb-zone-2"><div class="sector-head"><span>二面</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
                 <div class="heavy-sector zone-core" id="pb-zone-center"><div class="sector-head"><span>火場</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
                 <div class="heavy-sector zone-4" id="pb-zone-4"><div class="sector-head"><span>四面</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
-                <div class="heavy-sector zone-standby" id="pb-zone-standby"><div class="sector-head"><span>待命集結</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
                 <div class="heavy-sector zone-1" id="pb-zone-1"><div class="sector-head"><span>一面</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
             </div>
 
@@ -233,9 +242,8 @@
             }
         });
 
-        // 🟢 生成卡片（新增合併帶隊官顯示與防呆格式處理）
+        // 生成卡片
         function createCardHtml(data) {
-            // 防呆人數顯示：確保只出現一次「人」
             let pStr = String(data.people || "0").replace("人", "");
             pStr = pStr + "人";
             
@@ -248,7 +256,6 @@
                 time = data.updateTime.substring(11, 16);
             }
 
-            // 🟢 帶隊官資料整合（例如：新莊分隊 + 六號 -> 顯示為：新莊六號）
             let displayName = data.team || "";
             const leaderStr = data.leader || data.captain || "";
             if (leaderStr) {
@@ -283,27 +290,51 @@
             return '1';
         }
 
-        // 主畫面即時監聽
+        // 主畫面即時監聽 (待命單位分流進入彈出視窗名冊)
         onSnapshot(collection(db, "fire_deployments"), (snap) => {
             const counts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 };
             let total = 0;
+            let standbyCount = 0;
+            
+            // 清空主畫面網格
             document.querySelectorAll('#main-grid .unit-list').forEach(el => el.innerHTML = "");
+            
+            // 清空待命彈出框容器
+            const standbyContainer = document.getElementById('standby-container');
+            if (standbyContainer) standbyContainer.innerHTML = "";
 
             snap.forEach(d => {
                 const data = d.data();
                 const target = getTargetZone(data.side || "");
                 const pNum = parseInt(String(data.people || "0").replace(/[^0-9]/g, '')) || 0;
                 
-                const listEl = document.querySelector(`#zone-${target} .unit-list`);
-                if (listEl) {
-                    listEl.insertAdjacentHTML('beforeend', createCardHtml(data));
+                if (target === 'standby') {
+                    // 🟡 待命單位：寫入待命彈出視窗名單中
+                    standbyCount++;
+                    if (standbyContainer) {
+                        standbyContainer.insertAdjacentHTML('beforeend', createCardHtml(data));
+                    }
+                } else {
+                    // 一般分隊：渲染到主畫面的對應十字方位
+                    const listEl = document.querySelector(`#zone-${target} .unit-list`);
+                    if (listEl) {
+                        listEl.insertAdjacentHTML('beforeend', createCardHtml(data));
+                    }
                 }
                 counts[target] += pNum; total += pNum;
             });
+            
             document.getElementById('grand-total').innerText = total;
             for(let k in counts) {
                 const countEl = document.getElementById(`c-zone-${k}`);
                 if (countEl) countEl.innerText = counts[k];
+            }
+            
+            // 更新待命按鈕計數器
+            const standbyBtn = document.getElementById('standby-btn');
+            if (standbyBtn) standbyBtn.innerText = `待命名單 (${standbyCount})`;
+            if (standbyCount === 0 && standbyContainer) {
+                standbyContainer.innerHTML = '<div style="color: #888; font-size: 13px; text-align: center; width:100%; grid-column: span 2; padding: 20px;">目前無待命分隊</div>';
             }
         });
 
@@ -326,7 +357,7 @@
             if (evacCount === 0) container.innerHTML = "目前無人撤離";
         });
 
-        // 歷史紀錄監聽與載入
+        // 歷史紀錄監聽與載入 (支援回放時的分流渲染)
         onSnapshot(query(collection(db, "history_logs"), orderBy("endTime", "desc"), limit(10)), (snap) => {
             const container = document.getElementById('history-container');
             container.innerHTML = "";
@@ -341,15 +372,21 @@
                     document.querySelectorAll('#pb-grid .unit-list').forEach(el => el.innerHTML = "");
                     
                     if(data.deployments && data.deployments.length > 0) {
+                        let pbStandbyHtml = [];
                         data.deployments.forEach(unit => {
                             const target = getTargetZone(unit.side || "");
-                            const pbListEl = document.querySelector(`#pb-zone-${target} .unit-list`);
-                            if (pbListEl) {
-                                pbListEl.insertAdjacentHTML('beforeend', createCardHtml(unit));
+                            if (target === 'standby') {
+                                // 🟡 回放待命分隊改用金色小標籤排列於底部
+                                pbStandbyHtml.push(`<span style="display: inline-block; background: #222; border: 1px solid var(--neon-gold); color: var(--neon-gold); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin: 2px;">🟡 ${unit.team} (${unit.people}) - 待命</span>`);
+                            } else {
+                                const pbListEl = document.querySelector(`#pb-zone-${target} .unit-list`);
+                                if (pbListEl) {
+                                    pbListEl.insertAdjacentHTML('beforeend', createCardHtml(unit));
+                                }
                             }
                         });
+                        document.getElementById('pb-evac-list').innerHTML = pbStandbyHtml.join("") || `<span style="color:#888; font-size:11px;">(無待命資料)</span>`;
                     }
-                    document.getElementById('pb-evac-list').innerHTML = `<span style="color:#888; font-size:11px;">(歷史撤離資料需更新結案邏輯後方可顯示)</span>`;
                     document.getElementById('history-modal').style.display = 'none';
                     document.getElementById('playback-modal').style.display = 'block';
                 };
