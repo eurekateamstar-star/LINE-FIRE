@@ -114,7 +114,7 @@
         /* 浮動按鈕群 */
         .btn-group { position: fixed; bottom: 10px; right: 10px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
         .float-btn { background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px); border: 1px solid #666; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; text-align: center; }
-        #evac-btn { border-color: var(--evac-orange); color: var(--evac-orange); }
+        #evac-btn { border-color: var(--evac-orange); color: var(--evac-orange); } /* 🟢 返隊待命橘色按鈕 */
         #standby-btn { border-color: var(--neon-gold); color: var(--neon-gold); }
         
         /* 彈出視窗 */
@@ -130,7 +130,7 @@
         #pb-title { background: #002244; color: var(--neon-blue); border-bottom: 2px solid var(--neon-blue); }
         #playback-modal .tactical-grid { height: auto; flex-grow: 1; }
         
-        /* 回放視窗內的撤離名單專區 */
+        /* 回放視窗內的返隊待命名單專區 */
         .pb-evac-zone { background: #111; border-top: 1px solid #333; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; max-height: 120px; overflow-y: auto;}
 
         /* 改良版 Toast 提示 */
@@ -158,7 +158,7 @@
         <div class="header-right"><span id="live-date">YYYY-MM-DD</span><span id="live-clock">00:00:00</span></div>
     </div>
 
-    <!-- 主畫面十字網格 (新增：small標籤用來顯示分隊數量) -->
+    <!-- 主畫面十字網格 -->
     <div class="tactical-grid" id="main-grid">
         <div class="heavy-sector zone-3" id="zone-3">
             <div class="sector-head">
@@ -197,10 +197,10 @@
         </div>
     </div>
 
-    <!-- 右下角按鈕群 -->
+    <!-- 右下角按鈕群 (🟢 已更名為 返隊待命) -->
     <div class="btn-group">
         <div class="float-btn" id="standby-btn" onclick="document.getElementById('standby-modal').style.display='block'">待命名單 (0)</div>
-        <div class="float-btn" id="evac-btn" onclick="document.getElementById('evac-modal').style.display='block'">撤離名單 (0)</div>
+        <div class="float-btn" id="evac-btn" onclick="document.getElementById('evac-modal').style.display='block'">返隊待命 (0)</div>
         <div class="float-btn" onclick="document.getElementById('history-modal').style.display='block'">歷史紀錄</div>
     </div>
 
@@ -215,11 +215,11 @@
         </div>
     </div>
 
-    <!-- 撤離名單視窗 -->
+    <!-- 🟢 返隊待命分隊名單視窗 -->
     <div id="evac-modal" class="modal">
         <div class="modal-box" style="border-color: var(--evac-orange);">
-            <div class="modal-head" style="color: var(--evac-orange);">已撤離分隊名單</div>
-            <div id="evac-container" style="padding:10px; overflow-y:auto; flex-grow: 1;">目前無人撤離</div>
+            <div class="modal-head" style="color: var(--evac-orange);">返隊待命分隊名單</div>
+            <div id="evac-container" style="padding:10px; overflow-y:auto; flex-grow: 1;">目前無返隊待命分隊</div>
             <button class="close-btn" onclick="document.getElementById('evac-modal').style.display='none'">關閉視窗</button>
         </div>
     </div>
@@ -233,7 +233,7 @@
         </div>
     </div>
 
-    <!-- 戰術回放全螢幕視窗 (回放標題同步新增 small 標籤顯示當時分隊數量) -->
+    <!-- 戰術回放全螢幕視窗 -->
     <div id="playback-modal" class="modal">
         <div class="modal-box">
             <div class="modal-head" id="pb-title">戰術回放：載入中...</div>
@@ -369,7 +369,7 @@
         // 主畫面即時監聽
         onSnapshot(collection(db, "fire_deployments"), (snap) => {
             const counts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 };
-            const squadCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; // 🟢 新增：各區分隊數量累加器
+            const squadCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; 
             let total = 0;
             let standbyCount = 0;
             
@@ -394,7 +394,7 @@
                         listEl.insertAdjacentHTML('beforeend', createCardHtml(data));
                     }
                     counts[target] += pNum; 
-                    squadCounts[target]++; // 🟢 累計該面分隊個數
+                    squadCounts[target]++; 
                 }
             });
             
@@ -403,11 +403,9 @@
             document.getElementById('grand-total').innerText = operationalTotal;
             
             for(let k in counts) {
-                // 更新各區域總人數
                 const countEl = document.getElementById(`c-zone-${k}`);
                 if (countEl) countEl.innerText = counts[k];
 
-                // 🟢 動態更新各區域分隊個數標籤 (例如：一面 (4分隊))
                 const squadCountEl = document.getElementById(`squad-count-${k}`);
                 if (squadCountEl) {
                     squadCountEl.innerText = squadCounts[k] > 0 ? ` (${squadCounts[k]}分隊)` : '';
@@ -421,7 +419,7 @@
             }
         });
 
-        // 撤離名單監聽
+        // 🟢 返隊待命監聽 (原 撤離名單 整合更新)
         onSnapshot(collection(db, "fire_evacuations"), (snap) => {
             const container = document.getElementById('evac-container');
             const btn = document.getElementById('evac-btn');
@@ -433,14 +431,14 @@
                 container.innerHTML += `
                     <div class="log-item" style="border-left: 3px solid var(--evac-orange); padding-left: 8px;">
                         <span><b style="color:#fff;">${data.team}</b> (${data.people})</span>
-                        <span style="font-size: 11px; color: #888;">👤${evacBy} | 撤離於 ${time}</span>
+                        <span style="font-size: 11px; color: #888;">👤${evacBy} | 返隊於 ${time}</span>
                     </div>`;
             });
-            btn.innerText = `撤離名單 (${evacCount})`;
-            if (evacCount === 0) container.innerHTML = "目前無人撤離";
+            btn.innerText = `返隊待命 (${evacCount})`;
+            if (evacCount === 0) container.innerHTML = "目前無返隊待命分隊";
         });
 
-        // 歷史紀錄監聽與載入 (支援回放時分隊數計算)
+        // 歷史紀錄監聽與載入
         onSnapshot(query(collection(db, "history_logs"), orderBy("endTime", "desc"), limit(10)), (snap) => {
             const container = document.getElementById('history-container');
             container.innerHTML = "";
@@ -476,7 +474,6 @@
                         document.getElementById('pb-evac-list').innerHTML = pbStandbyHtml.join("") || `<span style="color:#888; font-size:11px;">(無待命資料)</span>`;
                     }
                     
-                    // 🟢 更新歷史回放介面的總人數與分隊數量
                     for(let k in pbCounts) {
                         const countEl = document.querySelector(`#pb-zone-${k} .sector-count`);
                         if (countEl) countEl.innerText = pbCounts[k];
