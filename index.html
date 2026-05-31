@@ -36,7 +36,7 @@
         #live-date { color: #88ccff; font-size: 9px; font-family: monospace; font-weight: bold; margin-bottom: 2px;}
         #live-clock { color: var(--neon-green); font-size: 14px; font-family: monospace; font-weight: bold; line-height: 1; }
 
-        /* 十字網格 - 主畫面與回放畫面共用 */
+        /* 十字網格 */
         .tactical-grid { 
             display: grid; flex-grow: 1; padding: 4px; gap: 4px;
             grid-template-columns: 1.15fr 1.3fr 1.15fr; 
@@ -63,36 +63,30 @@
 
         .unit-list { flex-grow: 1; overflow-y: auto; padding: 3px; display: flex; flex-direction: column; gap: 3px; }
 
-        /* 卡片設計與懸停顯示姓名 */
+        /* 卡片設計 - 取消內部隱藏文字，解決 ... 問題 */
         .unit-plate { 
             background: #1a1c1e; border: 1px solid #333; 
             border-left: 3px solid var(--safe-green);
-            padding: 3px 4px; border-radius: 3px;
+            padding: 4px 5px; border-radius: 3px; cursor: pointer;
+            transition: background 0.1s;
         }
+        .unit-plate:active { background: #333; } /* 點擊反饋 */
+        
         .zone-core .unit-plate { border-left-color: var(--neon-red); }
         .plate-standby { border-left-color: var(--neon-gold) !important; }
 
         .plate-row { display: flex; justify-content: space-between; align-items: center; }
         
-        .unit-name { font-weight: bold; color: var(--neon-gold); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; margin-right: 4px; }
+        /* 🟢 修改：名稱不截斷，讓分隊完整顯示 */
+        .unit-name { font-weight: bold; color: var(--neon-gold); font-size: 12px; white-space: nowrap; flex-grow: 1; margin-right: 4px; }
         
-        /* 🟢 懸停顯示名字的黑魔法 */
-        .reporter-name {
-            color: #66b3ff; font-size: 9px; font-weight: normal; margin-left: 5px;
-            opacity: 0; transition: opacity 0.2s ease-in-out; display: inline-block;
-        }
-        /* 電腦：滑鼠移上去顯示 / 手機：按住顯示 */
-        .unit-plate:hover .reporter-name, .unit-plate:active .reporter-name {
-            opacity: 1;
-        }
-
-        .unit-pax { color: #fff; font-size: 10px; background: #000; padding: 1px 3px; border-radius: 2px; white-space: nowrap; flex-shrink: 0;}
-        .unit-task { color: #ccc; font-size: 10px; font-weight: bold; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
-        .unit-time { color: var(--neon-green); font-family: monospace; font-size: 10px; font-weight: bold; margin-top: 2px; white-space: nowrap;}
+        .unit-pax { color: #fff; font-size: 10px; background: #000; padding: 1px 4px; border-radius: 2px; white-space: nowrap; flex-shrink: 0;}
+        .unit-task { color: #ccc; font-size: 10px; font-weight: bold; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
+        .unit-time { color: var(--neon-green); font-family: monospace; font-size: 10px; font-weight: bold; margin-top: 3px; white-space: nowrap;}
 
         /* 浮動按鈕群 */
         .btn-group { position: fixed; bottom: 10px; right: 10px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
-        .float-btn { background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px); border: 1px solid #666; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; text-align: center; }
+        .float-btn { background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px); border: 1px solid #666; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; text-align: center; }
         #evac-btn { border-color: var(--evac-orange); color: var(--evac-orange); }
         
         /* 彈出視窗 */
@@ -110,12 +104,25 @@
         
         /* 回放視窗內的撤離名單專區 */
         .pb-evac-zone { background: #111; border-top: 1px solid #333; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; max-height: 120px; overflow-y: auto;}
-        .pb-evac-tag { background: #220000; border: 1px solid var(--evac-orange); color: var(--evac-orange); font-size: 10px; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center;}
+
+        /* 🟢 改良版 Toast 提示 (手機上方彈出) */
+        #toast { 
+            position: fixed; top: -60px; left: 50%; transform: translateX(-50%); 
+            background: rgba(0, 0, 0, 0.95); color: #fff; padding: 10px 20px; 
+            border-radius: 30px; font-size: 14px; font-weight: bold; z-index: 10001; 
+            transition: top 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+            box-shadow: 0 4px 15px rgba(255,204,0,0.3); border: 1px solid var(--neon-gold);
+            white-space: nowrap; pointer-events: none;
+        }
+        #toast.show { top: 60px; } /* 從上方往下滑出 */
 
         ::-webkit-scrollbar { display: none; } 
     </style>
 </head>
 <body>
+
+    <!-- 🟢 點擊顯示的頂部提示框 -->
+    <div id="toast">提示訊息</div>
 
     <div class="compact-header">
         <div class="header-left"><span class="stat-label">現場人數</span><div class="stat-val" id="grand-total">0</div></div>
@@ -157,12 +164,11 @@
         </div>
     </div>
 
-    <!-- 🟢 戰術回放全螢幕視窗 -->
+    <!-- 戰術回放全螢幕視窗 -->
     <div id="playback-modal" class="modal">
         <div class="modal-box">
             <div class="modal-head" id="pb-title">戰術回放：載入中...</div>
             
-            <!-- 回放的十字網格 (完美對應 CSS 類別) -->
             <div class="tactical-grid" id="pb-grid">
                 <div class="heavy-sector zone-3" id="pb-zone-3"><div class="sector-head"><span>3面(後)</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
                 <div class="heavy-sector zone-2" id="pb-zone-2"><div class="sector-head"><span>2面(左)</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
@@ -172,11 +178,7 @@
                 <div class="heavy-sector zone-1" id="pb-zone-1"><div class="sector-head"><span>1面(正)</span><span class="sector-count"></span></div><div class="unit-list"></div></div>
             </div>
 
-            <!-- 回放畫面的撤離名單 -->
-            <div class="pb-evac-zone" id="pb-evac-list">
-                <span style="color:#666; font-size:11px; width:100%;">此案無撤離紀錄</span>
-            </div>
-
+            <div class="pb-evac-zone" id="pb-evac-list"></div>
             <button class="close-btn" onclick="document.getElementById('playback-modal').style.display='none'">關閉回放視窗</button>
         </div>
     </div>
@@ -190,6 +192,16 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        let toastTimeout;
+        window.showReporter = function(name, team) {
+            const t = document.getElementById('toast');
+            // 點擊後，在上方彈出「某某分隊 登記人：劉奕昕」
+            t.innerHTML = `<span style="color:var(--neon-gold)">${team}</span> 👤登記人：${name}`;
+            t.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => t.classList.remove('show'), 2500);
+        };
 
         setInterval(() => {
             const now = new Date();
@@ -209,13 +221,11 @@
             }
         });
 
-        // 🟢 生成卡片的 HTML (加入 reporter-name)
+        // 🟢 生成卡片 (乾淨版，只有點擊才會叫出名字)
         function createCardHtml(data) {
             const pStr = String(data.people || "0");
             const side = data.side || "";
             const taskStr = data.task || "";
-            
-            // 處理時間 (支援回放的字串時間 或 即時的 Timestamp)
             let time = "--:--";
             if (data.updateTime && data.updateTime.toDate) time = data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
             else if (data.updateTime && typeof data.updateTime === 'string') time = data.updateTime.substring(11, 16);
@@ -225,9 +235,9 @@
             if (taskStr.includes("待命") || side.includes("集結") || side.includes("外部")) plateClass += " plate-standby";
 
             return `
-                <div class="${plateClass}">
+                <div class="${plateClass}" onclick="showReporter('${reporter}', '${data.team}')">
                     <div class="plate-row">
-                        <span class="unit-name">${data.team} <span class="reporter-name">👤${reporter}</span></span>
+                        <span class="unit-name">${data.team}</span>
                         <span class="unit-pax">${pStr}</span>
                     </div>
                     <div class="plate-row">
@@ -283,7 +293,7 @@
             if (evacCount === 0) container.innerHTML = "目前無人撤離";
         });
 
-        // 歷史紀錄 (包含撤離資料抓取)
+        // 歷史紀錄
         onSnapshot(query(collection(db, "history_logs"), orderBy("endTime", "desc"), limit(10)), (snap) => {
             const container = document.getElementById('history-container');
             container.innerHTML = "";
@@ -293,23 +303,17 @@
                 div.className = 'log-item';
                 div.innerHTML = `<span><b>${data.type}</b> - ${data.address}</span> <span style="color:var(--neon-blue); font-size:11px;">▶ 戰術回放</span>`;
                 
-                // 點擊觸發戰術回放
                 div.onclick = async () => {
                     document.getElementById('pb-title').innerText = `[結案回放] ${data.type} | ${data.address}`;
                     document.querySelectorAll('#pb-grid .unit-list').forEach(el => el.innerHTML = "");
                     
-                    // 1. 填入佈署部隊
                     if(data.deployments && data.deployments.length > 0) {
                         data.deployments.forEach(unit => {
                             const target = getTargetZone(unit.side || "");
                             document.querySelector(`#pb-zone-${target} .unit-list`).insertAdjacentHTML('beforeend', createCardHtml(unit));
                         });
                     }
-
-                    // 2. 顯示撤離部隊 (這部分未來你需要在後台結案時把撤離名單一併寫入history，目前暫時以文字顯示)
-                    const evacList = document.getElementById('pb-evac-list');
-                    evacList.innerHTML = `<span style="color:#888; font-size:11px;">(如需顯示歷史撤離，需更新後台結案邏輯將 fire_evacuations 存入 history)</span>`;
-
+                    document.getElementById('pb-evac-list').innerHTML = `<span style="color:#888; font-size:11px;">(歷史撤離資料需更新結案邏輯後方可顯示)</span>`;
                     document.getElementById('history-modal').style.display = 'none';
                     document.getElementById('playback-modal').style.display = 'block';
                 };
