@@ -58,7 +58,7 @@
             flex-direction: column; 
             width: 100%;
             height: 100%; 
-            position: relative; 
+            position: relative; /* 為了讓分隊紅點定位 */
         }
         
         .sector-head { 
@@ -70,22 +70,21 @@
         }
         .sector-count { background: #000; color: var(--neon-gold); padding: 1px 5px; border-radius: 6px; font-size: 11px; border: 1px solid #444; }
 
-        /* 懸浮在框外的分隊數量警示徽章 */
+        /* 🚨 懸浮在框外的分隊數量警示徽章 (數值加大到 -22px，徹底懸浮在空中不壓字) */
         .squad-badge {
             position: absolute;
-            top: -10px; 
-            left: 50%; 
-            transform: translateX(-50%); 
+            top: -22px;  /* 🔼 往上推離框線，完全脫離灰色標題列 */
+            left: 8px;   /* 靠左對齊 */
             background: #d90429; 
             color: #fff;
             border: 1px solid #ffccd5;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 900;
-            padding: 1px 6px;
-            border-radius: 10px;
-            z-index: 10;
+            padding: 2px 7px;
+            border-radius: 12px;
+            z-index: 100; 
             display: none; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9);
             letter-spacing: 1px;
             white-space: nowrap;
         }
@@ -354,18 +353,15 @@
             }
         });
 
-        // 🟢 終極無死角搜索水線：掃描這個分隊的「所有文字欄位」
         function extractWaterLines(data) {
             if (!data) return 0;
             
-            // 把資料庫裡所有的字串拉出來拼在一起 (不論欄位叫 task, waterline, memo...)
             let allText = Object.values(data)
                 .filter(val => typeof val === 'string' || typeof val === 'number')
                 .join(" ");
 
             if (!allText.trim()) return 0;
             
-            // 防呆處理：清掉可能誤判的雙引號、轉全形數字為半形
             let s = allText.replace(/['"]/g, '')
                            .replace(/１/g, '1').replace(/２/g, '2')
                            .replace(/３/g, '3').replace(/４/g, '4')
@@ -374,36 +370,28 @@
                            .replace(/兩/g, '2').replace(/三/g, '3')
                            .replace(/四/g, '4').replace(/五/g, '5');
             
-            // 抓取模式 1："1條水線"、"2股水線"、"3水線"
             let match = s.match(/(\d+)\s*(?:條|股|線)?\s*水線/); 
             if (match) return parseInt(match[1]);
             
-            // 抓取模式 2："水線x1"、"水線 2"
             match = s.match(/水線\s*[xX*]?\s*(\d+)/); 
             if (match) return parseInt(match[1]);
             
-            // 抓取模式 3：如果只寫了 "水線" 且沒有包含 "0"，就預設算 1 條
             if (s.includes("水線") && !s.includes("0條") && !s.includes("0水線") && !s.includes("水線0")) return 1; 
             
             return 0;
         }
 
-        // 生成卡片
         function createCardHtml(data) {
-            let pStr = String(data.people || "0").replace(/['"人]/g, ""); // 清理多餘引號
+            let pStr = String(data.people || "0").replace(/['"人]/g, ""); 
             pStr = pStr + "人";
             const side = data.side || "";
             
-            // 避免 task 顯示出髒的引號
             let taskStr = (data.task || "未指派").replace(/['"]/g, "");
+            const wLines = extractWaterLines(data); 
             
-            const wLines = extractWaterLines(data); // 呼叫全欄位掃描
-            
-            // 如果偵測到出水線，就在卡片任務欄位旁邊加強顯示
             if (wLines > 0 && !taskStr.includes("水線")) {
                 taskStr += ` <span style="color: var(--neon-blue); font-weight: 900;">(💧${wLines}線)</span>`;
             } else if (wLines > 0) {
-                // 如果原本 task 裡面就有寫水線，直接把那個字變色凸顯
                 taskStr = taskStr.replace(/(\d+\s*(?:條|股|線)?\s*水線|水線\s*[xX*]?\s*\d+|水線)/g, '<span style="color: var(--neon-blue); font-weight: 900;">$&</span>');
             }
 
@@ -445,7 +433,6 @@
             return '1';
         }
 
-        // 主畫面即時監聽
         onSnapshot(collection(db, "fire_deployments"), (snap) => {
             const counts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 };
             const squadCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; 
@@ -460,8 +447,6 @@
                 const data = d.data();
                 const target = getTargetZone(data.side || "");
                 const pNum = parseInt(String(data.people || "0").replace(/[^0-9]/g, '')) || 0;
-                
-                // 傳入整個 data 讓他去全域掃描
                 const wLines = extractWaterLines(data); 
                 
                 if (target === 'standby') {
@@ -505,7 +490,6 @@
             }
         });
 
-        // 返隊待命監聽 
         onSnapshot(collection(db, "fire_evacuations"), (snap) => {
             const container = document.getElementById('evac-container');
             const btn = document.getElementById('evac-btn');
@@ -524,7 +508,6 @@
             if (evacCount === 0) container.innerHTML = "目前無返隊待命分隊";
         });
 
-        // 歷史紀錄監聽與載入
         onSnapshot(query(collection(db, "history_logs"), orderBy("endTime", "desc"), limit(10)), (snap) => {
             const container = document.getElementById('history-container');
             container.innerHTML = "";
