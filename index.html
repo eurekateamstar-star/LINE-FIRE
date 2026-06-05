@@ -49,7 +49,7 @@
             width: 100vw;
         }
 
-        /* 滿版區塊樣式 - 移除 overflow hidden 讓紅點可以浮出框外 */
+        /* 滿版區塊樣式 */
         .heavy-sector { 
             background: var(--inner-bg); 
             border: 1px solid var(--frame-gray); 
@@ -58,34 +58,36 @@
             flex-direction: column; 
             width: 100%;
             height: 100%; 
-            position: relative; /* 為了讓分隊紅點定位 */
+            position: relative; 
         }
         
         .sector-head { 
             background: #2a2d31; padding: 3px 6px; font-size: 11px; font-weight: bold; 
             border-bottom: 1px solid #000; display: flex; justify-content: space-between; 
             align-items: center; color: #ccc; 
-            border-radius: 5px 5px 0 0; /* 補回圓角 */
-            white-space: nowrap; /* 強制不換行 */
+            border-radius: 5px 5px 0 0; 
+            white-space: nowrap; 
         }
         .sector-count { background: #000; color: var(--neon-gold); padding: 1px 5px; border-radius: 6px; font-size: 11px; border: 1px solid #444; }
 
-        /* 🚨 新增：懸浮在框外的分隊數量警示徽章 */
+        /* 懸浮在框外的分隊數量警示徽章 */
         .squad-badge {
             position: absolute;
-            top: -6px;
-            left: -6px;
-            background: #d90429; /* 警示紅 */
+            top: -10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: #d90429; 
             color: #fff;
             border: 1px solid #ffccd5;
             font-size: 9px;
             font-weight: 900;
-            padding: 1px 5px;
+            padding: 1px 6px;
             border-radius: 10px;
             z-index: 10;
-            display: none; /* 預設隱藏，有資料才顯示 */
+            display: none; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.8);
             letter-spacing: 1px;
+            white-space: nowrap;
         }
         .zone-core .squad-badge { background: var(--neon-gold); color: #000; border-color: #000; }
 
@@ -134,7 +136,8 @@
         
         .unit-name { font-weight: bold; color: var(--neon-gold); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; margin-right: 2px; }
         .unit-pax { color: #fff; font-size: 9px; background: #000; padding: 1px 3px; border-radius: 2px; white-space: nowrap; flex-shrink: 0;}
-        .unit-task { color: #ccc; font-size: 9px; font-weight: bold; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+        
+        .unit-task { color: #ccc; font-size: 9px; font-weight: bold; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
         .unit-time { color: var(--neon-green); font-family: monospace; font-size: 9px; font-weight: bold; margin-top: 1px; white-space: nowrap;}
 
         /* 浮動按鈕群 */
@@ -351,11 +354,59 @@
             }
         });
 
+        // 🟢 終極無死角搜索水線：掃描這個分隊的「所有文字欄位」
+        function extractWaterLines(data) {
+            if (!data) return 0;
+            
+            // 把資料庫裡所有的字串拉出來拼在一起 (不論欄位叫 task, waterline, memo...)
+            let allText = Object.values(data)
+                .filter(val => typeof val === 'string' || typeof val === 'number')
+                .join(" ");
+
+            if (!allText.trim()) return 0;
+            
+            // 防呆處理：清掉可能誤判的雙引號、轉全形數字為半形
+            let s = allText.replace(/['"]/g, '')
+                           .replace(/１/g, '1').replace(/２/g, '2')
+                           .replace(/３/g, '3').replace(/４/g, '4')
+                           .replace(/５/g, '5').replace(/６/g, '6')
+                           .replace(/一/g, '1').replace(/二/g, '2')
+                           .replace(/兩/g, '2').replace(/三/g, '3')
+                           .replace(/四/g, '4').replace(/五/g, '5');
+            
+            // 抓取模式 1："1條水線"、"2股水線"、"3水線"
+            let match = s.match(/(\d+)\s*(?:條|股|線)?\s*水線/); 
+            if (match) return parseInt(match[1]);
+            
+            // 抓取模式 2："水線x1"、"水線 2"
+            match = s.match(/水線\s*[xX*]?\s*(\d+)/); 
+            if (match) return parseInt(match[1]);
+            
+            // 抓取模式 3：如果只寫了 "水線" 且沒有包含 "0"，就預設算 1 條
+            if (s.includes("水線") && !s.includes("0條") && !s.includes("0水線") && !s.includes("水線0")) return 1; 
+            
+            return 0;
+        }
+
+        // 生成卡片
         function createCardHtml(data) {
-            let pStr = String(data.people || "0").replace("人", "");
+            let pStr = String(data.people || "0").replace(/['"人]/g, ""); // 清理多餘引號
             pStr = pStr + "人";
             const side = data.side || "";
-            const taskStr = data.task || "";
+            
+            // 避免 task 顯示出髒的引號
+            let taskStr = (data.task || "未指派").replace(/['"]/g, "");
+            
+            const wLines = extractWaterLines(data); // 呼叫全欄位掃描
+            
+            // 如果偵測到出水線，就在卡片任務欄位旁邊加強顯示
+            if (wLines > 0 && !taskStr.includes("水線")) {
+                taskStr += ` <span style="color: var(--neon-blue); font-weight: 900;">(💧${wLines}線)</span>`;
+            } else if (wLines > 0) {
+                // 如果原本 task 裡面就有寫水線，直接把那個字變色凸顯
+                taskStr = taskStr.replace(/(\d+\s*(?:條|股|線)?\s*水線|水線\s*[xX*]?\s*\d+|水線)/g, '<span style="color: var(--neon-blue); font-weight: 900;">$&</span>');
+            }
+
             let time = "--:--";
             if (data.updateTime && data.updateTime.toDate) {
                 time = data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -363,13 +414,13 @@
                 time = data.updateTime.substring(11, 16);
             }
 
-            let displayName = data.team || "";
-            const leaderStr = data.leader || data.captain || "";
+            let displayName = (data.team || "").replace(/['"]/g, "");
+            const leaderStr = (data.leader || data.captain || "").replace(/['"]/g, "");
             if (leaderStr) displayName = displayName.replace("分隊", "") + leaderStr;
 
             const reporter = (data.reportedBy && data.reportedBy.name) ? data.reportedBy.name : "未知";
             let plateClass = "unit-plate"; 
-            if (taskStr.includes("待命") || side.includes("集結") || side.includes("外部") || side.includes("待命")) plateClass += " plate-standby";
+            if (taskStr.includes("待命") || side.includes("集結") || side.includes("外部")) plateClass += " plate-standby";
 
             return `
                 <div class="${plateClass}" onclick="showReporter('${reporter}', '${data.team}')">
@@ -394,17 +445,6 @@
             return '1';
         }
 
-        function extractWaterLines(taskStr) {
-            if (!taskStr) return 0;
-            let s = taskStr.replace(/一/g, '1').replace(/二/g, '2').replace(/兩/g, '2').replace(/三/g, '3').replace(/四/g, '4').replace(/五/g, '5');
-            let match = s.match(/(\d+)\s*(?:條|股|線)?\s*水線/); 
-            if (match) return parseInt(match[1]);
-            match = s.match(/水線\s*[xX*]?\s*(\d+)/); 
-            if (match) return parseInt(match[1]);
-            if (s.includes("水線")) return 1; 
-            return 0;
-        }
-
         // 主畫面即時監聽
         onSnapshot(collection(db, "fire_deployments"), (snap) => {
             const counts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 };
@@ -420,7 +460,9 @@
                 const data = d.data();
                 const target = getTargetZone(data.side || "");
                 const pNum = parseInt(String(data.people || "0").replace(/[^0-9]/g, '')) || 0;
-                const wLines = extractWaterLines(data.task); 
+                
+                // 傳入整個 data 讓他去全域掃描
+                const wLines = extractWaterLines(data); 
                 
                 if (target === 'standby') {
                     standbyCount++;
@@ -440,7 +482,6 @@
                 const countEl = document.getElementById(`c-zone-${k}`);
                 if (countEl) countEl.innerText = counts[k];
 
-                // 🚨 顯示浮動紅色分隊徽章
                 const badgeEl = document.getElementById(`badge-${k}`);
                 if (badgeEl) {
                     if (squadCounts[k] > 0) {
@@ -451,7 +492,6 @@
                     }
                 }
 
-                // 顯示精簡版水線數量 (例如：💧2水線)
                 const waterCountEl = document.getElementById(`water-count-${k}`);
                 if (waterCountEl) {
                     waterCountEl.innerText = waterCounts[k] > 0 ? `💧${waterCounts[k]}水線` : '';
@@ -506,7 +546,7 @@
                         let pbStandbyHtml = [];
                         data.deployments.forEach(unit => {
                             const target = getTargetZone(unit.side || "");
-                            const wLines = extractWaterLines(unit.task); 
+                            const wLines = extractWaterLines(unit); 
 
                             if (target === 'standby') {
                                 pbStandbyHtml.push(`<span style="display: inline-block; background: #222; border: 1px solid var(--neon-gold); color: var(--neon-gold); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin: 2px;">🟡 ${unit.team} (${unit.people}) - 待命</span>`);
@@ -528,7 +568,6 @@
                         const countEl = document.querySelector(`#pb-zone-${k} .sector-count`);
                         if (countEl) countEl.innerText = pbCounts[k];
                         
-                        // 🚨 回放的浮動紅色分隊徽章
                         const pbBadgeEl = document.getElementById(`pb-badge-${k}`);
                         if (pbBadgeEl) {
                             if (pbSquadCounts[k] > 0) {
@@ -539,7 +578,6 @@
                             }
                         }
 
-                        // 水線顯示
                         const waterCountEl = document.getElementById(`pb-water-count-${k}`);
                         if (waterCountEl) {
                             waterCountEl.innerText = pbWaterCounts[k] > 0 ? `💧${pbWaterCounts[k]}水線` : '';
