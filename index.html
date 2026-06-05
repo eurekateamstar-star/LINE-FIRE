@@ -49,19 +49,45 @@
             width: 100vw;
         }
 
-        /* 滿版區塊樣式 */
+        /* 滿版區塊樣式 - 移除 overflow hidden 讓紅點可以浮出框外 */
         .heavy-sector { 
             background: var(--inner-bg); 
             border: 1px solid var(--frame-gray); 
             border-radius: 6px; 
             display: flex; 
             flex-direction: column; 
-            overflow: hidden; 
             width: 100%;
             height: 100%; 
+            position: relative; /* 為了讓分隊紅點定位 */
         }
-        .sector-head { background: #2a2d31; padding: 3px 6px; font-size: 11px; font-weight: bold; border-bottom: 1px solid #000; display: flex; justify-content: space-between; align-items: center; color: #ccc; }
+        
+        .sector-head { 
+            background: #2a2d31; padding: 3px 6px; font-size: 11px; font-weight: bold; 
+            border-bottom: 1px solid #000; display: flex; justify-content: space-between; 
+            align-items: center; color: #ccc; 
+            border-radius: 5px 5px 0 0; /* 補回圓角 */
+            white-space: nowrap; /* 強制不換行 */
+        }
         .sector-count { background: #000; color: var(--neon-gold); padding: 1px 5px; border-radius: 6px; font-size: 11px; border: 1px solid #444; }
+
+        /* 🚨 新增：懸浮在框外的分隊數量警示徽章 */
+        .squad-badge {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            background: #d90429; /* 警示紅 */
+            color: #fff;
+            border: 1px solid #ffccd5;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 1px 5px;
+            border-radius: 10px;
+            z-index: 10;
+            display: none; /* 預設隱藏，有資料才顯示 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            letter-spacing: 1px;
+        }
+        .zone-core .squad-badge { background: var(--neon-gold); color: #000; border-color: #000; }
 
         /* 中間火場微調比例 */
         .zone-core { 
@@ -152,7 +178,6 @@
     <div id="toast">提示訊息</div>
 
     <div class="compact-header">
-        <!-- 左上角：管制人數 -->
         <div class="header-left"><span class="stat-label">管制人數</span><div class="stat-val" id="grand-total">0</div></div>
         <div class="header-center"><h1 id="task-type">系統待命中</h1><div id="task-address">等待派遣指令...</div></div>
         <div class="header-right"><span id="live-date">YYYY-MM-DD</span><span id="live-clock">00:00:00</span></div>
@@ -161,51 +186,41 @@
     <!-- 主畫面十字網格 -->
     <div class="tactical-grid" id="main-grid">
         <div class="heavy-sector zone-3" id="zone-3">
+            <div class="squad-badge" id="badge-3"></div>
             <div class="sector-head">
-                <span>第三面
-                    <small id="squad-count-3" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                    <small id="water-count-3" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                </span>
+                <span>第三面<small id="water-count-3" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                 <span class="sector-count" id="c-zone-3">0</span>
             </div>
             <div class="unit-list"></div>
         </div>
         <div class="heavy-sector zone-2" id="zone-2">
+            <div class="squad-badge" id="badge-2"></div>
             <div class="sector-head">
-                <span>第二面
-                    <small id="squad-count-2" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                    <small id="water-count-2" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                </span>
+                <span>第二面<small id="water-count-2" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                 <span class="sector-count" id="c-zone-2">0</span>
             </div>
             <div class="unit-list"></div>
         </div>
         <div class="heavy-sector zone-core" id="zone-center">
+            <div class="squad-badge" id="badge-center"></div>
             <div class="sector-head">
-                <span>火場內部
-                    <small id="squad-count-center" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                    <small id="water-count-center" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                </span>
+                <span>火場內部<small id="water-count-center" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                 <span class="sector-count" id="c-zone-center">0</span>
             </div>
             <div class="unit-list"></div>
         </div>
         <div class="heavy-sector zone-4" id="zone-4">
+            <div class="squad-badge" id="badge-4"></div>
             <div class="sector-head">
-                <span>第四面
-                    <small id="squad-count-4" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                    <small id="water-count-4" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                </span>
+                <span>第四面<small id="water-count-4" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                 <span class="sector-count" id="c-zone-4">0</span>
             </div>
             <div class="unit-list"></div>
         </div>
         <div class="heavy-sector zone-1" id="zone-1">
+            <div class="squad-badge" id="badge-1"></div>
             <div class="sector-head">
-                <span>第一面
-                    <small id="squad-count-1" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                    <small id="water-count-1" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                </span>
+                <span>第一面<small id="water-count-1" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                 <span class="sector-count" id="c-zone-1">0</span>
             </div>
             <div class="unit-list"></div>
@@ -223,9 +238,7 @@
     <div id="standby-modal" class="modal">
         <div class="modal-box" style="border-color: var(--neon-gold); max-width: 480px;">
             <div class="modal-head" style="color: var(--neon-gold);">目前待命集結分隊</div>
-            <div id="standby-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; flex-grow: 1;">
-                目前無待命分隊
-            </div>
+            <div id="standby-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; flex-grow: 1;"></div>
             <button class="close-btn" onclick="document.getElementById('standby-modal').style.display='none'">關閉視窗</button>
         </div>
     </div>
@@ -234,7 +247,7 @@
     <div id="evac-modal" class="modal">
         <div class="modal-box" style="border-color: var(--evac-orange);">
             <div class="modal-head" style="color: var(--evac-orange);">返隊待命分隊名單</div>
-            <div id="evac-container" style="padding:10px; overflow-y:auto; flex-grow: 1;">目前無返隊待命分隊</div>
+            <div id="evac-container" style="padding:10px; overflow-y:auto; flex-grow: 1;"></div>
             <button class="close-btn" onclick="document.getElementById('evac-modal').style.display='none'">關閉視窗</button>
         </div>
     </div>
@@ -255,51 +268,41 @@
             
             <div class="tactical-grid" id="pb-grid">
                 <div class="heavy-sector zone-3" id="pb-zone-3">
+                    <div class="squad-badge" id="pb-badge-3"></div>
                     <div class="sector-head">
-                        <span>第三面
-                            <small id="pb-squad-count-3" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                            <small id="pb-water-count-3" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                        </span>
+                        <span>第三面<small id="pb-water-count-3" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                         <span class="sector-count"></span>
                     </div>
                     <div class="unit-list"></div>
                 </div>
                 <div class="heavy-sector zone-2" id="pb-zone-2">
+                    <div class="squad-badge" id="pb-badge-2"></div>
                     <div class="sector-head">
-                        <span>第二面
-                            <small id="pb-squad-count-2" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                            <small id="pb-water-count-2" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                        </span>
+                        <span>第二面<small id="pb-water-count-2" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                         <span class="sector-count"></span>
                     </div>
                     <div class="unit-list"></div>
                 </div>
                 <div class="heavy-sector zone-core" id="pb-zone-center">
+                    <div class="squad-badge" id="pb-badge-center"></div>
                     <div class="sector-head">
-                        <span>火場內部
-                            <small id="pb-squad-count-center" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                            <small id="pb-water-count-center" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                        </span>
+                        <span>火場內部<small id="pb-water-count-center" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                         <span class="sector-count"></span>
                     </div>
                     <div class="unit-list"></div>
                 </div>
                 <div class="heavy-sector zone-4" id="pb-zone-4">
+                    <div class="squad-badge" id="pb-badge-4"></div>
                     <div class="sector-head">
-                        <span>第四面
-                            <small id="pb-squad-count-4" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                            <small id="pb-water-count-4" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                        </span>
+                        <span>第四面<small id="pb-water-count-4" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                         <span class="sector-count"></span>
                     </div>
                     <div class="unit-list"></div>
                 </div>
                 <div class="heavy-sector zone-1" id="pb-zone-1">
+                    <div class="squad-badge" id="pb-badge-1"></div>
                     <div class="sector-head">
-                        <span>第一面
-                            <small id="pb-squad-count-1" style="font-size: 9px; color: var(--neon-green); font-weight: normal; margin-left: 3px;"></small>
-                            <small id="pb-water-count-1" style="font-size: 9px; color: var(--neon-blue); font-weight: bold; margin-left: 3px;"></small>
-                        </span>
+                        <span>第一面<small id="pb-water-count-1" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span>
                         <span class="sector-count"></span>
                     </div>
                     <div class="unit-list"></div>
@@ -348,11 +351,9 @@
             }
         });
 
-        // 生成卡片
         function createCardHtml(data) {
             let pStr = String(data.people || "0").replace("人", "");
             pStr = pStr + "人";
-            
             const side = data.side || "";
             const taskStr = data.task || "";
             let time = "--:--";
@@ -364,9 +365,7 @@
 
             let displayName = data.team || "";
             const leaderStr = data.leader || data.captain || "";
-            if (leaderStr) {
-                displayName = displayName.replace("分隊", "") + leaderStr;
-            }
+            if (leaderStr) displayName = displayName.replace("分隊", "") + leaderStr;
 
             const reporter = (data.reportedBy && data.reportedBy.name) ? data.reportedBy.name : "未知";
             let plateClass = "unit-plate"; 
@@ -385,7 +384,6 @@
                 </div>`;
         }
 
-        // 智慧分流判定邏輯
         function getTargetZone(side) {
             if (!side) return '1';
             if (side.includes("內部") || side.includes("頂樓") || side.includes("火場")) return 'center';
@@ -396,19 +394,14 @@
             return '1';
         }
 
-        // 自動辨識任務字串中的水線數量 (支援 "2條水線", "水線x2", "兩條水線", "出1水線" 等寫法)
         function extractWaterLines(taskStr) {
             if (!taskStr) return 0;
-            // 轉換常見中文數字為阿拉伯數字
             let s = taskStr.replace(/一/g, '1').replace(/二/g, '2').replace(/兩/g, '2').replace(/三/g, '3').replace(/四/g, '4').replace(/五/g, '5');
-            
-            let match = s.match(/(\d+)\s*(?:條|股|線)?\s*水線/); // 抓取 "2條水線"
+            let match = s.match(/(\d+)\s*(?:條|股|線)?\s*水線/); 
             if (match) return parseInt(match[1]);
-            
-            match = s.match(/水線\s*[xX*]?\s*(\d+)/); // 抓取 "水線x2"
+            match = s.match(/水線\s*[xX*]?\s*(\d+)/); 
             if (match) return parseInt(match[1]);
-            
-            if (s.includes("水線")) return 1; // 如果只寫了"水線"但沒寫數量，預設算1條
+            if (s.includes("水線")) return 1; 
             return 0;
         }
 
@@ -416,12 +409,10 @@
         onSnapshot(collection(db, "fire_deployments"), (snap) => {
             const counts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 };
             const squadCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; 
-            const waterCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; // 💦 新增水線統計
-            let total = 0;
+            const waterCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; 
             let standbyCount = 0;
             
             document.querySelectorAll('#main-grid .unit-list').forEach(el => el.innerHTML = "");
-            
             const standbyContainer = document.getElementById('standby-container');
             if (standbyContainer) standbyContainer.innerHTML = "";
 
@@ -429,41 +420,41 @@
                 const data = d.data();
                 const target = getTargetZone(data.side || "");
                 const pNum = parseInt(String(data.people || "0").replace(/[^0-9]/g, '')) || 0;
-                const wLines = extractWaterLines(data.task); // 💦 解析水線數量
+                const wLines = extractWaterLines(data.task); 
                 
                 if (target === 'standby') {
                     standbyCount++;
-                    if (standbyContainer) {
-                        standbyContainer.insertAdjacentHTML('beforeend', createCardHtml(data));
-                    }
+                    if (standbyContainer) standbyContainer.insertAdjacentHTML('beforeend', createCardHtml(data));
                 } else {
                     const listEl = document.querySelector(`#zone-${target} .unit-list`);
-                    if (listEl) {
-                        listEl.insertAdjacentHTML('beforeend', createCardHtml(data));
-                    }
+                    if (listEl) listEl.insertAdjacentHTML('beforeend', createCardHtml(data));
                     counts[target] += pNum; 
                     squadCounts[target]++; 
-                    waterCounts[target] += wLines; // 💦 累加水線
+                    waterCounts[target] += wLines; 
                 }
             });
             
-            // 管制人數計算
-            const operationalTotal = counts['1'] + counts['2'] + counts['3'] + counts['4'] + counts['center'];
-            document.getElementById('grand-total').innerText = operationalTotal;
+            document.getElementById('grand-total').innerText = counts['1'] + counts['2'] + counts['3'] + counts['4'] + counts['center'];
             
             for(let k in counts) {
                 const countEl = document.getElementById(`c-zone-${k}`);
                 if (countEl) countEl.innerText = counts[k];
 
-                const squadCountEl = document.getElementById(`squad-count-${k}`);
-                if (squadCountEl) {
-                    squadCountEl.innerText = squadCounts[k] > 0 ? ` (${squadCounts[k]}分隊)` : '';
+                // 🚨 顯示浮動紅色分隊徽章
+                const badgeEl = document.getElementById(`badge-${k}`);
+                if (badgeEl) {
+                    if (squadCounts[k] > 0) {
+                        badgeEl.innerText = `${squadCounts[k]}隊`;
+                        badgeEl.style.display = 'block';
+                    } else {
+                        badgeEl.style.display = 'none';
+                    }
                 }
 
-                // 💦 顯示該面總水線數
+                // 顯示精簡版水線數量 (例如：💧2水線)
                 const waterCountEl = document.getElementById(`water-count-${k}`);
                 if (waterCountEl) {
-                    waterCountEl.innerText = waterCounts[k] > 0 ? ` 💧${waterCounts[k]}水線` : '';
+                    waterCountEl.innerText = waterCounts[k] > 0 ? `💧${waterCounts[k]}水線` : '';
                 }
             }
             
@@ -509,13 +500,13 @@
                     
                     const pbCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0 };
                     const pbSquadCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0 };
-                    const pbWaterCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0 }; // 💦 回放水線統計
+                    const pbWaterCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0 }; 
 
                     if(data.deployments && data.deployments.length > 0) {
                         let pbStandbyHtml = [];
                         data.deployments.forEach(unit => {
                             const target = getTargetZone(unit.side || "");
-                            const wLines = extractWaterLines(unit.task); // 💦 解析回放水線數量
+                            const wLines = extractWaterLines(unit.task); 
 
                             if (target === 'standby') {
                                 pbStandbyHtml.push(`<span style="display: inline-block; background: #222; border: 1px solid var(--neon-gold); color: var(--neon-gold); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin: 2px;">🟡 ${unit.team} (${unit.people}) - 待命</span>`);
@@ -527,7 +518,7 @@
                                 const pNum = parseInt(String(unit.people || "0").replace(/[^0-9]/g, '')) || 0;
                                 pbCounts[target] += pNum;
                                 pbSquadCounts[target]++;
-                                pbWaterCounts[target] += wLines; // 💦 累加水線
+                                pbWaterCounts[target] += wLines; 
                             }
                         });
                         document.getElementById('pb-evac-list').innerHTML = pbStandbyHtml.join("") || `<span style="color:#888; font-size:11px;">(無待命資料)</span>`;
@@ -537,15 +528,21 @@
                         const countEl = document.querySelector(`#pb-zone-${k} .sector-count`);
                         if (countEl) countEl.innerText = pbCounts[k];
                         
-                        const squadCountEl = document.getElementById(`pb-squad-count-${k}`);
-                        if (squadCountEl) {
-                            squadCountEl.innerText = pbSquadCounts[k] > 0 ? ` (${pbSquadCounts[k]}分隊)` : '';
+                        // 🚨 回放的浮動紅色分隊徽章
+                        const pbBadgeEl = document.getElementById(`pb-badge-${k}`);
+                        if (pbBadgeEl) {
+                            if (pbSquadCounts[k] > 0) {
+                                pbBadgeEl.innerText = `${pbSquadCounts[k]}隊`;
+                                pbBadgeEl.style.display = 'block';
+                            } else {
+                                pbBadgeEl.style.display = 'none';
+                            }
                         }
 
-                        // 💦 顯示回放水線數
+                        // 水線顯示
                         const waterCountEl = document.getElementById(`pb-water-count-${k}`);
                         if (waterCountEl) {
-                            waterCountEl.innerText = pbWaterCounts[k] > 0 ? ` 💧${pbWaterCounts[k]}水線` : '';
+                            waterCountEl.innerText = pbWaterCounts[k] > 0 ? `💧${pbWaterCounts[k]}水線` : '';
                         }
                     }
 
